@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "bitset": "cpp",
+        "memory": "cpp",
+        "random": "cpp",
+        "optional": "cpp",
+        "am.h": "c",
+        "isa.h": "c",
+        "common.h": "c",
+        "decode.h": "c"
+    }
+}
