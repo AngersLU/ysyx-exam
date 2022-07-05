@@ -9,8 +9,12 @@
 `define WriteDisable    1'b0        //ban write
 `define ReadEnable      1'b1        //enable read
 `define ReadDisable     1'b0        //ban write
-`define AluOpBus        7:0         //id_state output aluop_o bus width
-`define AluSelBus       2:0         //id_state output alusel_o bus width
+`define AluOpBus        13: 0         //id_state output aluop_o bus width
+`define AluSel1Bus      2 : 0
+`define AluSel2Bus      5 : 0
+
+`define AluSelBus       2 : 0         //id_state output alusel_o bus width
+`define BR_TO_IF_BUS   64: 0
 `define InstValid       1'b0        //instruction valid
 `define InstInvalid     1'b1        //instruction invalid
 `define True_v          1'b1        //logic"true"
@@ -19,7 +23,32 @@
 `define ChipDisable     1'b0        //chip disable
 //about specific instruction defines
 //*****************************
-`define EXE_ADDI        7'b0010011  //addi opcode
+`define EXE_ADDI_OP        7'b0010011  //addi opcode
+
+
+
+
+/* ***** R-type ************* */
+//func7 inst[31:25]
+`define EXE_AND_OR_XOR_FUNC7    7'b0000000
+`define EXE_AND_FUNC7           7'b0000000
+`define EXE_OR_FUNC7            7'b0000000
+`define EXE_XOR_FUNC7           7'b0000000
+
+//func3 inst[14:12]
+`define EXE_AND         3'b111 //and func3
+`define EXE_OR          3'b110 //or  func3
+`define EXE_XOR         3'b100 //xor func3
+
+//opcode inst[6:0]
+`define EXE_AND_OR_XOR_OP   7'b0110_011
+`define EXE_AND_OP          7'b0110_011 //and opcode
+`define EXE_OR_OP           7'b0110_011 //or  opcode
+`define EXE_XOR_OP          7'b0110_011 //xor opcode
+
+/* ************************** */
+
+
 //`define EXE_EBREAK      7'b1110011  //ebreak opcode
 // `define EXE_ORI         6'b001101   //inst ori's opcode
 // `define EXE_NOP         6'b000000
@@ -52,3 +81,5 @@
 `define PC_MBASE             64'h0000_0000_8000_0000
 `define CONFIG_MSIZE         32'h8000_0000
 `define PC_MSIZE             64'h0000_0000_8000_0000
+
+`define StallBus 6

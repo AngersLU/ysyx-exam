@@ -44,7 +44,7 @@ module ysyx_2022040010_regfile (
         else if (raddr1 == `RegNumLog2'h0) begin
             rdata1 <= `ZeroWord;
         end
-        else if ((raddr1 == waddr) && (we == `WriteEnable) && (re1 == `ReadEnable)) begin
+        else if ((raddr1 == waddr) && (we == `WriteEnable) && (re1 == `ReadEnable)) begin//correlation resolution with interal of 2 (RAW)
             rdata1 <= wdata;
         end
         else if (re1 == `ReadEnable) begin

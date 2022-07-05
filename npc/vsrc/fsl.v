@@ -13,7 +13,8 @@ module ysyx_2022040010_fsl (
 
 );
 
-    // //TYPE = R
+
+    // TYPE = R
     // assign opcode = inst[6 : 0];
     // assign rd     = inst[11: 7];
     // assign func3  = inst[14:12];
@@ -21,26 +22,26 @@ module ysyx_2022040010_fsl (
     // assign rs2    = inst[24:20];
     // assign func7  = inst[31:25];
 
-    // //TYPE = S
+    // TYPE = S
     // assign opcode = inst[6 : 0];
     // assign imm    = { inst[31:25], inst[11: 7] };
     // assign func3  = inst[14:12];
     // assign rs1    = inst[19:15];
     // assign rs2    = inst[24:20];
 
-    // //TYPE = B
+    // TYPE = B
     // assign opcode = inst[6 : 0];
     // assign imm    = { inst[31:31], inst[7 : 7], inst[30:25], inst[11: 8], 0};
     // assign func3  = inst[14:12];
     // assign rs1    = inst[19:15];
     // assign rs2    = inst[24:20];
 
-    // //TYPE = U
+    // TYPE = U
     // assign opcode = inst[6 : 0];
     // assign rd     = inst[11: 7];
     // assign imm    = inst[31:12];
 
-    // //TYPE = J
+    // TYPE = J
     // assign opcode = inst[6 : 0];
     // assign rd     = inst[11: 7];
     // assign imm    = { inst[31:31], inst[19:12], inst[20:20], inst[30:21], 0 };
@@ -124,6 +125,16 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_id ysyx_2022040010_id0(.rst(rst),
            .pc_i(id_pc_i),
            .inst_i(id_inst_i),
+
+           //ex->id the result of an instruction in execution
+           .ex_w_e_i(ex_w_reg_e_o),
+           .ex_w_addr_i(ex_w_rd_addr_o),
+           .ex_w_data_i(ex_w_data_o),
+
+           //mem->id the result of an instruction in memory access
+           .mem_w_e_i(mem_w_reg_e_o),
+           .mem_w_addr_i(mem_w_rd_addr_o),
+           .mem_w_data_i(mem_w_data_o),
 
            //from regfile input
            .reg1_data_i(reg1_data),
