@@ -96,17 +96,18 @@ module ysyx_2022040010_ex (
     input wire clk,
     input wire rst,
 
-    input wire [`StallBus-1:0] stall,
-    output wire stallreq_for_ex,    //TODO:?
+    // input wire [`StallBus-1:0] stall,
+    // output wire stallreq_for_ex,    //TODO:?
 
     input wire [`ID_TO_EX_WD-1:0] id_to_ex_bus;
 
     output wire [`EX_TO_MEM_WD-1:0] ex_to_mem_bus;
 
-    output wire [`EX_TO_RF_WD-1:0] ex_to_rf_bus,
+    output wire [`BP_TO_RF_BUS] ex_to_rf_bus,
 
     output [`BR_TO_IF_BUS] br_bus,
 
+    // line 272
     output wire dsram_e,
     output wire [3 : 0] dsram_we,
     output wire [31: 0] dsram_addr,
@@ -151,25 +152,24 @@ module ysyx_2022040010_ex (
     wire lsu_8, lsu_16, lsu_32, lsu_64, mul_32, div_32, alu_32;
 
     assign  {
-        lsu_8,
+        sp_bus,         // 361:360
+        lsu_8,          // 359
         lsu_16,
         lsu_32,
         lsu_64,
         mul_32,
         div_32,
         alu_32,
-        mem_op,         // 321:311
-        mul_op,         // 310:306
-        rem_op,
-        div_op,         // 305:302
-        sru_op,         // 301:256
-        // hilo_op,        // 228:221
-        // hi, lo,         // 220:157
-        ex_pc,          // 255:192
-        inst_i,         // 191:160
-        alu_op,         // 159:146
-        sel_alu_src1,   // 145:143
-        sel_alu_src2,   // 142:137 
+        mem_op,         // 352:342
+        mul_op,         // 341:337
+        rem_op,         // 336:333
+        div_op,         // 332:329
+        sru_op,         // 328:253
+        ex_pc,          // 252:189
+        inst_i,         // 188:157
+        alu_op,         // 156:145
+        sel_alu_src1,   // 144:142
+        sel_alu_src2,   // 141:137 
         dram_e,         // 136
         dram_we,        // 135
         rf_we,          // 134
@@ -231,40 +231,58 @@ module ysyx_2022040010_ex (
 
     assign shamt_zero_extend  = { 58'b0, shamt[ 5:0]};
 
-/*  sel_alu_src1[2]  special handle
+//   sel_alu_src1[2]  special handle
     assign imm_U_sp_extend = { 32{imm_U[19]}, imm_U[19:0], 12'b0 };
-*/
+
     wire [63:0] alu_src1,   alu_src2;
     wire [63:0] alu_result, ex_result;
+
+    wire alu_over;
+
     assign alu_src1 =   sel_alu_src1[1] ? ex_pc : 
+                        sel_alu_src1[2] ? 64'b0 :
                         sel_rs1_forward ? rs1_forward_data : rf_rdata1;
 
     assign alu_src2 =   sel_alu_src2[1] ? imm_I_sign_extend :
+                        sel_alu_src2[2] ? imm_U_sp_extend   :
                         sel_alu_src2[3] ? imm_I_zero_extend :
                         sel_alu_src2[4] ? shamt_zero_extend :
-                        sel_alu_src2[5] ? imm_J_sign_extend :
                         sel_rs2_forward ? rs2_forward_data  : rf_rdata2;
+
     alu alu_ex( 
-        .alu_op         (alu_op),
-        .alu_src1       (alu_src1),
-        .alu_src2       (alu_src2),
-        .alu_result     (alu_result)
+        .alu_op         (alu_op     ),
+        .alu_src1       (alu_src1   ),
+        .alu_src2       (alu_src2   ),
+        .alu_32         (alu_32     ),
+        .alu_result     (alu_result ),
+        .alu_over       (alu_over   )
     );
 
 // lsu load & store 
-    wire inst_lb, inst_lbu, inst_lh, inst_lhu, inst_lw, inst_lwu, inst_ld;
+// load instructions need to obtain data in the mem_stage
+// inessence, load in exu is an addition operation
     wire inst_sb, inst_sh,  inst_sw, inst_sd;
     wire [ 3: 0]  sel_lsu_byte;
+    wire [ 6: 0]  load_op;
 
     assign {
-         inst_lb, inst_lbu, inst_lh, inst_lhu, inst_lw, inst_lwu, inst_ld,
          inst_sb, inst_sh,  inst_sw, inst_sd
-    } = mem_op;
+    } = mem_op[ 3: 0];
+
+    assign load_op = mem_op[10: 4]
 
     assign sel_lsu_byte =   {lsu_64, lsu_32, lsu_16, lsu_8};
+//mem_op == 1 & dsram_we == 0 dsram_addr != 64'b0 -> load operation
 
+//TODO:output
     assign dsram_e  =   dram_e;
-    assign dsram_we =   {4{dram_we}}&sel_lsu_byte;   //TODO:how to use
+    //TODO: write_enable & lsu_byte
+    // software selects the bit width for storage
+    // dsram_we == 4'b0001  dsram_wdata[ 7: 0] 
+    // dsram_we == 4'b0010  dsram_wdata[16: 0]
+    // dsram_we == 4'b0100  dsram_wdata[31: 0]
+    // dsram_we == 4'b1000  dsram_wdata[64: 0]
+    assign dsram_we =   {4{dram_we}}&sel_lsu_byte;  
     assign dsram_addr   =   ex_result;
     assign dsram_wdata  =   inst_sb ? { {66{rf_rdata2[ 7]}}, rf_rdata2[ 7: 0]} :
                             inst_sh ? { {48{rf_rdata2[15]}}, rf_rdata2[15: 0]} :
@@ -286,27 +304,37 @@ module ysyx_2022040010_ex (
 
     wire [2:0] sel_mul_hilo;
     wire [63: 0] mul_result;
-    assign sel_mul_hilo[0] =    inst_mulw;  //mul_result[31: 0]
-    assign sel_mul_hilo[1] =    inst_mulh   |   inst_mulhsu     |   inst_mulh;   //mul_result[127:64]
-    assign sel_mul_hilo[2] =    inst_mul;   //mul_result[63: 0]
-//TODO:now, not classify signed and unsigned
+
+    //mul_result[31: 0]
+    assign sel_mul_hilo[0] =    inst_mulw;  
+
+    //mul_result[127:64]
+    assign sel_mul_hilo[1] =    inst_mulh   |   inst_mulhsu     |   inst_mulh; 
+
+    //mul_result[63: 0]
+    assign sel_mul_hilo[2] =    inst_mul;   
+
     wire [63: 0] mul_result;
     wire mul_ina_s, mul_inb_s;
+
+    wire mul_over;
 
     assign mul_ina_s = inst_mul |   inst_mulh   |   inst_mulhsu |   inst_mulw ;
     assign mul_inb_s = inst_mul |   inst_mulh   |   inst_mulw;
 
+//depend on  {mul_ina_s, mul_inb_s}　11　normal，　10　mulhsu , 00 mulhu
     mul mul_ex(
-        .clk        (clk            ),
-        .ret        (rst            ),
-        .mul_32     (mul_32         ),  
-        .mul_ina_s  (mul_ina_s      ),
-        .ina        (rf_rdata1      ),
-        .mul_inb_s  (mul_inb_s      ),
-        .inb        (rd_rdata2      ),
-        .sel_mul_hilo(sel_mul_hilo  ),
+        .clk            (clk            ),
+        .ret            (rst            ),
+        .mul_32         (mul_32         ),  
+        .mul_ina_s      (mul_ina_s      ),
+        .ina            (rf_rdata1      ),
+        .mul_inb_s      (mul_inb_s      ),
+        .inb            (rd_rdata2      ),
+        .sel_mul_hilo   (sel_mul_hilo  ),
 
-        .result     (mul_result     )
+        .result         (mul_result     ),
+        .mul_over       (mul_over       )
     );
 
 
@@ -316,10 +344,10 @@ module ysyx_2022040010_ex (
 // div part
     wire inst_rem,    inst_remu,  inst_remw,  inst_remuw,
          inst_div,    inst_divu,  inst_divw,  inst_divuw;
-
+    // /
     assign {    inst_div,    inst_divu,  inst_divw,  inst_divuw  
     }   =   div_op;
-
+    // %
     assign {    inst_rem,    inst_remu,  inst_remw,  inst_remuw
     }   =   rem_op;
 
@@ -329,29 +357,37 @@ module ysyx_2022040010_ex (
 
     reg [63: 0] div_data1;
     reg [63: 0] div_data2;
+
     reg div_start;
     reg div_signed;
     wire [63: 0] div_result;//TODO: result is 128bits?
 
     wire [ 1: 0] div_res_sel;
-    // 1 sel div result , 0 sel  
-    assign div_res_sel = {div_op, rem_op};
+    // 1 sel div result , 0 sel  rem
+    assign div_res_sel = {div_op, rem_op};  
+    wire [63:0] div_data1_32;
+    wire [63:0] div_data1_i;
+    wire [63:0] div_data2_32;
+    wire [63:0] div_data2_i;
 
-//TODO:余数计算目前还没加入div
+    assign div_data1_32 = div_signed ? {32{div_data1[31]}, div_data1[31:0]} : {32{1'b0}, div_data1[31:0]};
+    assign div_data1_i = div_32 ? div_data1_32 : div_data1;
+    assign div_data2_32 = div_signed ? {32{div_data2[31]}, div_data2[31:0]} : {32{1'b0}, div_data2[31:0]};
+    assign div_data2_i = div_32 ? div_data2_32 : div_data2;
 
     div div_ex(
-        .rst        (rst        ),
-        .clk        (clk        ),
-        .div_signed (div_signed ),
-        .div_32     (div_32     ), // is it 32-bits operation 
-        .div_data1  (div_data1  ),
-        .div_data2  (div_data2  ),
-        .div_start  (div_start  ),
-        .cancle     (1'b0       ),
-        .div_res_sel(div_res_sel),
+        .rst            (rst        ),
+        .clk            (clk        ),
+        .signed_div_i   (div_signed ),
+        .div_32         (div_32     ), // is it 32-bits operation 
+        .opdata1_i      (div_data1_i),
+        .opdata2_i      (div_data2_i),
+        .start_i        (div_start  ),
+        .annul_i        (1'b0       ),
+        .div_res_sel    (div_res_sel),
 
-        .div_result (div_result ),
-        .div_over   (div_over   )
+        .div_res_o       (div_result ),
+        .ready_o        (div_over   )
     );
 
     wire sel_div_signed;
@@ -361,8 +397,6 @@ module ysyx_2022040010_ex (
     assign sel_div_unsigned =   inst_remu   |   inst_remuw  |   inst_divu   
                             |   inst_divuw;   
 
-
-//TODO:这里面没有divw & divuw
     always @ ( *) begin
         if ( rst) begin
             stallreq_for_div = `NoStop;
@@ -488,6 +522,47 @@ module ysyx_2022040010_ex (
 
     assign br_bus   = { bru_e,
                         bru_addr    };
+
+//sp_handle
+    import "DPI-C" function void ebreak;
+
+    always @ (*) begin
+        if(alu_op[0] == 1 & sp_bus[0] == 1) begin
+            ebreak();
+        end
+        else if ( alu_op[0] == 1 & sp_bus[1] == 1) begin
+            ecall();//TODO: no finished yet
+        end
+    end
+
+
+
+
+//out
+    assign ex_result =  alu_over ? alu_result :
+                        mul_over ? mul_result :
+                        div_over ? div_result :
+                        64'b0;                //this instruction is a branch 
+
+// store instruction over    143: 0
+    assign ex_to_mem_bus = {
+        load_op,    //143:137
+        ex_pc,      //136:73 
+        dram_e,     //    72
+        dram_we,    //    71 TODO:NOT USE
+        sel_lsu_byte,//70:67
+        //0 form alu_res, 1 from ld_res
+        sel_rf_res, //    66
+        rf_we,      //    65
+        rf_waddr,   // 68:64
+        ex_result   // 63: 0
+    };
+    // bypass ex_to_id
+    assign ex_to_rf_bus = {
+        rf_w,       //    68
+        rf_waddr,   // 67:64
+        ex_result   // 63: 0
+    };
 
 
 

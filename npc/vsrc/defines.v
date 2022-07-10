@@ -9,12 +9,36 @@
 `define WriteDisable    1'b0        //ban write
 `define ReadEnable      1'b1        //enable read
 `define ReadDisable     1'b0        //ban write
-`define AluOpBus        13: 0         //id_state output aluop_o bus width
+`define AluOpBus        11: 0         //id_state output aluop_o bus width
 `define AluSel1Bus      2 : 0
-`define AluSel2Bus      5 : 0
+`define AluSel2Bus      4 : 0
 
 `define AluSelBus       2 : 0         //id_state output alusel_o bus width
-`define BR_TO_IF_BUS   64: 0
+
+`define IF_TO_ID_BUS    64 :0
+`define ID_TO_EX_BUS    361:0
+`define BR_TO_IF_BUS    64 :0
+`define EX_TO_MEM_BUS   143:0
+`define MEM_TO_WB_BUS   133:0
+`define SP_BUS          1 : 0
+
+
+`define IF_TO_ID_WD     65
+`define ID_TO_EX_WD     362
+`define BR_TO_IF_WD     65   
+`define EX_TO_MEM_WD    144
+`define MEM_TO_WB_WD    134
+`define SP_WD       2
+
+//bypass
+`define BP_TO_RF_BUS    68: 0
+
+`define BP_TO_RF_WD     69
+
+
+
+
+
 `define InstValid       1'b0        //instruction valid
 `define InstInvalid     1'b1        //instruction invalid
 `define True_v          1'b1        //logic"true"
@@ -77,9 +101,18 @@
 `define RegNumLog2      5       //general reg address bits
 `define ZeroRegAddr     5'b00000
 
-`define CONFIG_MBASE         32'h8000_0000
+`define CONFIG_MBASE         64'h0000_0000_8000_0000
 `define PC_MBASE             64'h0000_0000_8000_0000
 `define CONFIG_MSIZE         32'h8000_0000
 `define PC_MSIZE             64'h0000_0000_8000_0000
 
-`define StallBus 6
+`define StallBus        6
+
+`define DivFree             2'b00
+`define DivByZero           2'b01
+`define DivOn               2'b10
+`define DivEnd              2'b11
+`define DivResultReady      1'b1
+`define DivResultNotReady   1'b0
+`define DivStart            1'b1
+`define DivStop             1'b0

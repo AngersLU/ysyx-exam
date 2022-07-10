@@ -8,6 +8,7 @@
         "isa.h": "c",
         "common.h": "c",
         "decode.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "macro.h": "c"
     }
 }

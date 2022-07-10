@@ -6,215 +6,215 @@
 
 // endmodule
 
-`include "defines.v"
-
-module ysyx_2022040010_id (
-    input wire rst,
-    input wire[`InstAddrBus] pc_i,
-    input wire[`InstBus]     inst_i,
-
-    //ex->id the result of an instruction in execution
-    input wire ex_w_e_i,
-    input wire[`RegAddrBus] ex_w_addr_i,
-    input wire[`RegBus] ex_w_data_i, //send to reg1/2_o
-
-    //mem->id the result of an instruction in memory access
-    input wire mem_w_e_i,
-    input wire[`RegAddrBus] mem_w_addr_i,
-    input wire[`RegBus] mem_w_data_i,  //send to reg1/2_o
-
-    //read reg data
-    input wire[`RegBus] reg1_data_i,//从Regfile输入的第一个读寄存器端口的输入
-    input wire[`RegBus] reg2_data_i,
-
-    //ouput regfiel data
-    output reg reg1_read_e_o,           //regfile read port 1 enable
-    output reg reg2_read_e_o,           //regfile read port 2 enable
-    output reg[`RegAddrBus] reg1_addr_o,//read port 1 address
-    output reg[`RegAddrBus] reg2_addr_o,//read port 2 address
-
-    //ex data
-    output reg[`AluOpBus]   aluop_o, //运算子类型
-    output reg[`AluSelBus]  alusel_o,//运算类型
-    output reg[`RegBus]     reg1_o,//src1
-    output reg[`RegBus]     reg2_o,//src2
-    output reg[`RegAddrBus] w_rd_addr_o,    //id_state write rd reg addr
-    output reg              w_reg_e_o       //id_state write rd enable
-
-);
-
-    //all inst have opcode
-    wire[6:0] opcode;
-    assign opcode = inst_i[6:0];
 
 
-/* TYPE = R R_type need func3 + func7 to decide alu(or other operation) type */
-/*************************************************************************/
-// [31 func7 25] [24 rs2 20] [19 rs1 15] [14 func3 12] [11 rd 7] [6 opcode 0]
-//       7            5          5              3          5          7
-    wire [2:0] func3;
-    wire [6:0] func7;
-    wire [4:0] rs1;  
-    wire [4:0] rs2;
-    wire [4:0] rd;
-    assign rs1      = inst_i[19:15]; 
-    assign rs2      = inst_i[24:20];
-    assign rd       = inst_i[11:7];
-    assign func3    = inst_i[14:12];
-    assign func7    = inst_i[31:25];
-/*************************************************************************/
+// module ysyx_2022040010_id (
+//     input wire rst,
+//     input wire[`InstAddrBus] pc_i,
+//     input wire[`InstBus]     inst_i,
+
+//     //ex->id the result of an instruction in execution
+//     input wire ex_w_e_i,
+//     input wire[`RegAddrBus] ex_w_addr_i,
+//     input wire[`RegBus] ex_w_data_i, //send to reg1/2_o
+
+//     //mem->id the result of an instruction in memory access
+//     input wire mem_w_e_i,
+//     input wire[`RegAddrBus] mem_w_addr_i,
+//     input wire[`RegBus] mem_w_data_i,  //send to reg1/2_o
+
+//     //read reg data
+//     input wire[`RegBus] reg1_data_i,//从Regfile输入的第一个读寄存器端口的输入
+//     input wire[`RegBus] reg2_data_i,
+
+//     //ouput regfiel data
+//     output reg reg1_read_e_o,           //regfile read port 1 enable
+//     output reg reg2_read_e_o,           //regfile read port 2 enable
+//     output reg[`RegAddrBus] reg1_addr_o,//read port 1 address
+//     output reg[`RegAddrBus] reg2_addr_o,//read port 2 address
+
+//     //ex data
+//     output reg[`AluOpBus]   aluop_o, //运算子类型
+//     output reg[`AluSelBus]  alusel_o,//运算类型
+//     output reg[`RegBus]     reg1_o,//src1
+//     output reg[`RegBus]     reg2_o,//src2
+//     output reg[`RegAddrBus] w_rd_addr_o,    //id_state write rd reg addr
+//     output reg              w_reg_e_o       //id_state write rd enable
+
+// );
+
+//     //all inst have opcode
+//     wire[6:0] opcode;
+//     assign opcode = inst_i[6:0];
 
 
-//TYPE = I;
-    // wire[6:0] opcode = inst_i[6 : 0];
-
-    //using DPI-C function to break chip run
-    import "DPI-C" function void ebreak;
-
-    always @(*) begin
-        if(inst_i == 32'h00100073) begin
-            ebreak();
-        end
-    end
-
-    // reg[4:0] rd     = inst_i[11: 7]; //1
-    // reg[2:0] func3  = inst_i[14:12]; //0
-    // reg[4:0] rs1    = inst_i[19:15]; //1
-    reg[`RegBus] imm;
-    reg inst_valid;
-
-    always @(*) begin
-        if(rst == `RstEnable) begin
-            aluop_o         <= `EXE_NOP_OP;
-            alusel_o        <= `EXE_RES_NOP;//TODO:modify
-            w_rd_addr_o     <= `ZeroRegAddr;
-            w_reg_e_o       <= `WriteDisable;
-            inst_valid      <= `InstValid;
-            reg1_read_e_o   <= 1'b0;
-            reg2_read_e_o   <= 1'b0;
-            reg1_addr_o     <= `ZeroRegAddr;
-            reg2_addr_o     <= `ZeroRegAddr;
-            imm             <= `ZeroWord;
-        end
-        else begin
-            aluop_o         <= `EXE_NOP_OP;
-            alusel_o        <= `EXE_RES_NOP;
-            w_rd_addr_o     <= inst_i[11:7];
-            w_reg_e_o       <= `WriteDisable;
-            inst_valid      <= `InstInvalid;
-            reg1_read_e_o   <= 1'b0;
-            reg1_read_e_o   <= 1'b0;
-            reg1_addr_o     <= inst_i[19:15];
-            reg2_addr_o     <= inst_i[24:20];//TODO:modify
-            imm             <= `ZeroWord;
-            case (opcode)
-            `EXE_AND_OR_XOR_OP: begin
-                case (func7)
-                    `EXE_AND_OR_XOR_FUNC7:begin
-                        case (func3)
-                            `EXE_AND: begin
-                                aluop_o     <= `EXE_AND_OP; 
-                                alusel_o    <= `EXE_RES_LOGIC;
-
-                                w_rd_addr_o <=  inst_i[11:7];   
-                                w_reg_e_o   <=  `WriteEnable;
-
-                                reg1_read_e_o   <=  1'b1;
-                                reg2_read_e_o   <=  1'b1;
-                                inst_valid      <= `InstValid;
-                            end
-                            `EXE_OR: begin
-                                aluop_o     <= `EXE_OR_OP; 
-                                alusel_o    <= `EXE_RES_LOGIC;
-
-                                w_rd_addr_o <=  inst_i[11:7];   
-                                w_reg_e_o   <=  `WriteEnable;
-
-                                reg1_read_e_o   <=  1'b1;
-                                reg2_read_e_o   <=  1'b1;
-                                inst_valid      <= `InstValid;                    
-                            end
-                            `EXE_XOR: begin
-                                aluop_o     <= `EXE_XOR_OP; 
-                                alusel_o    <= `EXE_RES_LOGIC;
-
-                                w_rd_addr_o <=  inst_i[11:7];   
-                                w_reg_e_o   <=  `WriteEnable;
-
-                                reg1_read_e_o   <=  1'b1;
-                                reg2_read_e_o   <=  1'b1;
-                                inst_valid      <= `InstValid;                      
-                            end
-                            default:begin
-                            end 
-                        endcase //case (func3)
-                    end 
-                    default: begin
-                    end
-                endcase //case (func7)
-            `EXE_ADDI_OP: begin
-                aluop_o         <= `EXE_ADD_OP;
-                alusel_o        <= `EXE_RES_LOGIC;
-
-                w_rd_addr_o     <= inst_i[11:7];
-                w_reg_e_o       <= `WriteEnable;
-                // $display("%h",w_reg_e_o);
-                reg1_read_e_o   <= 1'b1;
-                reg2_read_e_o   <= 1'b0;//TODO:1'b0
-                imm             <= {52'b0, inst_i[31:20]};//TODO:delete
-//                $display("%h",imm);
-                inst_valid      <= `InstValid;//it will be used when illegal instructions appear later
-            end
-            default: begin
-            end
-            endcase //case (opcode)
-        end//if
-    end//always
+// /* TYPE = R R_type need func3 + func7 to decide alu(or other operation) type */
+// /*************************************************************************/
+// // [31 func7 25] [24 rs2 20] [19 rs1 15] [14 func3 12] [11 rd 7] [6 opcode 0]
+// //       7            5          5              3          5          7
+//     wire [2:0] func3;
+//     wire [6:0] func7;
+//     wire [4:0] rs1;  
+//     wire [4:0] rs2;
+//     wire [4:0] rd;
+//     assign rs1      = inst_i[19:15]; 
+//     assign rs2      = inst_i[24:20];
+//     assign rd       = inst_i[11:7];
+//     assign func3    = inst_i[14:12];
+//     assign func7    = inst_i[31:25];
+// /*************************************************************************/
 
 
-    always @(*) begin
-        if(rst == `RstEnable) begin
-            reg1_o <= `ZeroWord;
-        end
-        else if((reg1_read_e_o == 1'b1) && (ex_w_e_i == 1'b1) && (ex_w_addr_i == reg1_addr_o)) begin
-            reg1_o <= ex_w_data_i;
-        end
-        else if((reg1_read_e_o == 1'b1) && (mem_w_e_i == 1'b1) && (mem_w_addr_i == reg1_addr_o)) begin
-            reg1_o <= mem_w_data_i;
-        end
-        else if (reg1_read_e_o == 1'b1) begin
-            reg1_o <= reg1_data_i;
-        end
-        else if (reg1_read_e_o == 1'b0) begin
-            reg1_o <= imm;
-        end
-        else begin
-            reg1_o <= `ZeroWord;
-        end
-    end
+// //TYPE = I;
+//     // wire[6:0] opcode = inst_i[6 : 0];
 
-    always @(*) begin
-        if(rst == `RstEnable) begin
-            reg2_o <= `ZeroWord;
-        end
-        else if((reg2_read_e_o == 1'b1) && (ex_w_e_i == 1'b1) && (ex_w_addr_i == reg2_addr_o)) begin
-            reg2_o <= ex_w_data_i;
-        end
-        else if((reg2_read_e_o == 1'b1) && (mem_w_e_i == 1'b1) && (mem_w_addr_i == reg2_addr_o)) begin
-            reg2_o <= mem_w_data_i;
-        end
-        else if (reg2_read_e_o == 1'b1) begin
-            reg2_o <= reg2_data_i;
-        end
-        else if (reg2_read_e_o == 1'b0) begin
-            reg2_o <= imm;
-            // $display("%h",reg2_o);
-        end
-        else begin
-            reg2_o <= `ZeroWord;
-        end
-    end
-endmodule
+//     //using DPI-C function to break chip run
+//     import "DPI-C" function void ebreak;
+
+//     always @(*) begin
+//         if(inst_i == 32'h00100073) begin
+//             ebreak();
+//         end
+//     end
+
+//     // reg[4:0] rd     = inst_i[11: 7]; //1
+//     // reg[2:0] func3  = inst_i[14:12]; //0
+//     // reg[4:0] rs1    = inst_i[19:15]; //1
+//     reg[`RegBus] imm;
+//     reg inst_valid;
+
+//     always @(*) begin
+//         if(rst == `RstEnable) begin
+//             aluop_o         <= `EXE_NOP_OP;
+//             alusel_o        <= `EXE_RES_NOP;//TODO:modify
+//             w_rd_addr_o     <= `ZeroRegAddr;
+//             w_reg_e_o       <= `WriteDisable;
+//             inst_valid      <= `InstValid;
+//             reg1_read_e_o   <= 1'b0;
+//             reg2_read_e_o   <= 1'b0;
+//             reg1_addr_o     <= `ZeroRegAddr;
+//             reg2_addr_o     <= `ZeroRegAddr;
+//             imm             <= `ZeroWord;
+//         end
+//         else begin
+//             aluop_o         <= `EXE_NOP_OP;
+//             alusel_o        <= `EXE_RES_NOP;
+//             w_rd_addr_o     <= inst_i[11:7];
+//             w_reg_e_o       <= `WriteDisable;
+//             inst_valid      <= `InstInvalid;
+//             reg1_read_e_o   <= 1'b0;
+//             reg1_read_e_o   <= 1'b0;
+//             reg1_addr_o     <= inst_i[19:15];
+//             reg2_addr_o     <= inst_i[24:20];//TODO:modify
+//             imm             <= `ZeroWord;
+//             case (opcode)
+//             `EXE_AND_OR_XOR_OP: begin
+//                 case (func7)
+//                     `EXE_AND_OR_XOR_FUNC7:begin
+//                         case (func3)
+//                             `EXE_AND: begin
+//                                 aluop_o     <= `EXE_AND_OP; 
+//                                 alusel_o    <= `EXE_RES_LOGIC;
+
+//                                 w_rd_addr_o <=  inst_i[11:7];   
+//                                 w_reg_e_o   <=  `WriteEnable;
+
+//                                 reg1_read_e_o   <=  1'b1;
+//                                 reg2_read_e_o   <=  1'b1;
+//                                 inst_valid      <= `InstValid;
+//                             end
+//                             `EXE_OR: begin
+//                                 aluop_o     <= `EXE_OR_OP; 
+//                                 alusel_o    <= `EXE_RES_LOGIC;
+
+//                                 w_rd_addr_o <=  inst_i[11:7];   
+//                                 w_reg_e_o   <=  `WriteEnable;
+
+//                                 reg1_read_e_o   <=  1'b1;
+//                                 reg2_read_e_o   <=  1'b1;
+//                                 inst_valid      <= `InstValid;                    
+//                             end
+//                             `EXE_XOR: begin
+//                                 aluop_o     <= `EXE_XOR_OP; 
+//                                 alusel_o    <= `EXE_RES_LOGIC;
+
+//                                 w_rd_addr_o <=  inst_i[11:7];   
+//                                 w_reg_e_o   <=  `WriteEnable;
+
+//                                 reg1_read_e_o   <=  1'b1;
+//                                 reg2_read_e_o   <=  1'b1;
+//                                 inst_valid      <= `InstValid;                      
+//                             end
+//                             default:begin
+//                             end 
+//                         endcase //case (func3)
+//                     end 
+//                     default: begin
+//                     end
+//                 endcase //case (func7)
+//             `EXE_ADDI_OP: begin
+//                 aluop_o         <= `EXE_ADD_OP;
+//                 alusel_o        <= `EXE_RES_LOGIC;
+
+//                 w_rd_addr_o     <= inst_i[11:7];
+//                 w_reg_e_o       <= `WriteEnable;
+//                 // $display("%h",w_reg_e_o);
+//                 reg1_read_e_o   <= 1'b1;
+//                 reg2_read_e_o   <= 1'b0;//TODO:1'b0
+//                 imm             <= {52'b0, inst_i[31:20]};//TODO:delete
+// //                $display("%h",imm);
+//                 inst_valid      <= `InstValid;//it will be used when illegal instructions appear later
+//             end
+//             default: begin
+//             end
+//             endcase //case (opcode)
+//         end//if
+//     end//always
+
+
+//     always @(*) begin
+//         if(rst == `RstEnable) begin
+//             reg1_o <= `ZeroWord;
+//         end
+//         else if((reg1_read_e_o == 1'b1) && (ex_w_e_i == 1'b1) && (ex_w_addr_i == reg1_addr_o)) begin
+//             reg1_o <= ex_w_data_i;
+//         end
+//         else if((reg1_read_e_o == 1'b1) && (mem_w_e_i == 1'b1) && (mem_w_addr_i == reg1_addr_o)) begin
+//             reg1_o <= mem_w_data_i;
+//         end
+//         else if (reg1_read_e_o == 1'b1) begin
+//             reg1_o <= reg1_data_i;
+//         end
+//         else if (reg1_read_e_o == 1'b0) begin
+//             reg1_o <= imm;
+//         end
+//         else begin
+//             reg1_o <= `ZeroWord;
+//         end
+//     end
+
+//     always @(*) begin
+//         if(rst == `RstEnable) begin
+//             reg2_o <= `ZeroWord;
+//         end
+//         else if((reg2_read_e_o == 1'b1) && (ex_w_e_i == 1'b1) && (ex_w_addr_i == reg2_addr_o)) begin
+//             reg2_o <= ex_w_data_i;
+//         end
+//         else if((reg2_read_e_o == 1'b1) && (mem_w_e_i == 1'b1) && (mem_w_addr_i == reg2_addr_o)) begin
+//             reg2_o <= mem_w_data_i;
+//         end
+//         else if (reg2_read_e_o == 1'b1) begin
+//             reg2_o <= reg2_data_i;
+//         end
+//         else if (reg2_read_e_o == 1'b0) begin
+//             reg2_o <= imm;
+//             // $display("%h",reg2_o);
+//         end
+//         else begin
+//             reg2_o <= `ZeroWord;
+//         end
+//     end
+// endmodule
 
 
 // module ysyx_2022040010_id_ex (
@@ -262,6 +262,7 @@ endmodule
 
 // endmodule
 
+`include "defines.v"
 module ysyx_2022040010_id (
     input wire clk,
     input wire rst,
@@ -270,18 +271,17 @@ module ysyx_2022040010_id (
 
     input wire [`IF_TO_ID-1:0] if_to_id_bus,
 
-    input wire [31:0] inst_sram_rdata,
+    input wire [31:0] isram_rdata,
 
 
 
 // BypassBus replace
     input wire [`EX_TO_RF_WD-1:0]  ex_to_rf_bus,
     input wire [`MEM_TO_RF_WD-1:0] mem_to_rf_bus,
-    input wire [`WB_TO_EX_WD-1:0]  wb_to_ex_bus,
+    input wire [`WB_TO_EX_WD-1:0]  wb_to_rf_bus,
 //
 
     output wire [`ID_TO_EX_WD-1:0]  id_to_ex_bus,
-    output wire [`BR_WD-1:0];       br_bus 
 );
 
     reg [`IF_TO_ID_WD-1:0] if_to_id_bus_r;
@@ -312,15 +312,11 @@ module ysyx_2022040010_id (
         end
         else if (stall[1]==`Stop && stall[2]==`Stop && ~flag) begin
             flag <= 1'b1;
-            buf_inst <= inst_sram_rdata;
+            buf_inst <= isram_rdata;
         end
     end
-
-    assign inst_i = ce ? flag ? buf_inst : inst_sram_rdata : 32'b0;
-
-
-
-
+    //buf_inst bounce point of brunch instruction ?
+    assign inst_i = ce ? flag ? buf_inst : isram_rdata : 32'b0;
 
 
 //　TODO:后面通过旁路来进行代替
@@ -328,7 +324,7 @@ module ysyx_2022040010_id (
         ex_rf_we,
         ex_rf_waddr,
         ex_rf_wdata
-    } = ex_to_rd_bus;
+    } = ex_to_rf_bus;
 
     assign {
         mem_rf_we,
@@ -336,13 +332,13 @@ module ysyx_2022040010_id (
         mem_rf_wdata
     } = mem_to_rf_bus;
 
-        assign {
+    assign {
         wb_rf_we,
         wb_rf_waddr,
         wb_rf_wdata
     } = wb_to_rf_bus;
 
-
+//
 
 
 
@@ -360,50 +356,50 @@ module ysyx_2022040010_id (
 
 
 
-/*  TYPE = I I_type need opcode + func3 to decide alu(or other operation) type */
-/*************************************************************************/
-// [31         imm      20] [19 rs1 15] [14 func3 12] [11 rd 7] [6 opcode 0]
-//              12               5            3            5          7
-    wire [11:0] imm_I;
-    wire [ 5:0] shamt;
-/*************************************************************************/
+// /*  TYPE = I I_type need opcode + func3 to decide alu(or other operation) type */
+// /*************************************************************************/
+// // [31         imm      20] [19 rs1 15] [14 func3 12] [11 rd 7] [6 opcode 0]
+// //              12               5            3            5          7
+//     wire [11:0] imm_I;
+//     wire [ 5:0] shamt;
+// /*************************************************************************/
 
 
 
-/* TYPE = U U_type need opcode to decide alu(or other operation) type */
-/*************************************************************************/
-// [31                   imm                      12] [11 rd 7] [6 opcode 0]
-//                        20                               5         7
-    wire [19:0] imm_U;
-/*************************************************************************/
+// /* TYPE = U U_type need opcode to decide alu(or other operation) type */
+// /*************************************************************************/
+// // [31                   imm                      12] [11 rd 7] [6 opcode 0]
+// //                        20                               5         7
+//     wire [19:0] imm_U;
+// /*************************************************************************/
 
-/* TYPE = S S_type need opcode + func3 to decide alu(or other operation) type */
-/*************************************************************************/
-//[31 imm[11:5] 25] [24 rs2 20] [19 rs1 15] [14 func3 12] [11 imm[4:0] 7] [6 opcode 0]
-//       7               5          5              3          5                 7
-    wire [11:0] imm_S;
-/*************************************************************************/
+// /* TYPE = S S_type need opcode + func3 to decide alu(or other operation) type */
+// /*************************************************************************/
+// //[31 imm[11:5] 25] [24 rs2 20] [19 rs1 15] [14 func3 12] [11 imm[4:0] 7] [6 opcode 0]
+// //       7               5          5              3          5                 7
+//     wire [11:0] imm_S;
+// /*************************************************************************/
 
-/* TYPE = B B_type need opcode + func3 to decide alu(or other operation) type */
-/*************************************************************************/
-//[31 imm[12|10:5] 25] [24 rs2 20] [19 rs1 15] [14 func3 12] [11 imm[4:1|11] 7] [6 opcode 0]
-//         7                5          5              3              5                 7
-    wire [11:0] imm_B;
-/*************************************************************************/
+// /* TYPE = B B_type need opcode + func3 to decide alu(or other operation) type */
+// /*************************************************************************/
+// //[31 imm[12|10:5] 25] [24 rs2 20] [19 rs1 15] [14 func3 12] [11 imm[4:1|11] 7] [6 opcode 0]
+// //         7                5          5              3              5                 7
+//     wire [11:0] imm_B;
+// /*************************************************************************/
 
-/* TYPE = J J_type need opcode to decide alu(or other operation) type */
-/*************************************************************************/
-//[31 imm[20|10:1|11|19:12] 12] [11 rd 7] [6 opcode 0]
-//              20                  5          7
-    wire [19:0] imm_J;
-/*************************************************************************/
+// /* TYPE = J J_type need opcode to decide alu(or other operation) type */
+// /*************************************************************************/
+// //[31 imm[20|10:1|11|19:12] 12] [11 rd 7] [6 opcode 0]
+// //              20                  5          7
+//     wire [19:0] imm_J;
+// /*************************************************************************/
 
-/* TYPE = SPECIAL SPECIAL_type */
-/*************************************************************************/
-//fence fence.i ecall ebreak
+// /* TYPE = SPECIAL SPECIAL_type */
+// /*************************************************************************/
+// //fence fence.i ecall ebreak
 
 
-/*************************************************************************/
+// /*************************************************************************/
 
 
 
@@ -425,21 +421,20 @@ module ysyx_2022040010_id (
     regfile regfile_id(
         .clk    (clk    ),
         .rst    (rst    ),
+
         .re1    (       ),
         .raddr1 (rs1    ),
         .rdata1 (rs1_data),
+
         .re2    (       ),
         .raddr2 (rs2    ),
         .rdata2 (rs2_data),
+
         .we     (wb_rf_we),
         .waddr  (wb_rf_waddr),
         .wdata  (wb_rf_wdata)
     );
     
-
-
-
-
 
 
 // TODO: rdata1 & rdata2 will be replaced by sel_rs1_forward & rs_forward_data
@@ -458,21 +453,21 @@ module ysyx_2022040010_id (
 
 
 
-//TODO:need to SEXT?
-//I
-    assign imm_I    = inst_i[31:20];    //no need to decoder
-    assign shamt    = imm_I[ 5: 0];
-//U
-    assign imm_U    = inst_i[31:12];    //no need to decoder
+// //TODO:need to SEXT?
+// //I
+//     assign imm_I    = inst_i[31:20];    //no need to decoder
+//     assign shamt    = imm_I[ 5: 0];
+// //U
+//     assign imm_U    = inst_i[31:12];    //no need to decoder
 
-//S 
-    assign imm_S    = {inst_i[31:25], inst_i[11:7]};    //no need to decoder
+// //S 
+//     assign imm_S    = {inst_i[31:25], inst_i[11:7]};    //no need to decoder
 
-//B
-    assign imm_B    = {inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};    //no need to decoder
+// //B
+//     assign imm_B    = {inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};    //no need to decoder
 
-//J
-    assign imm_J    = {inst_i[31], inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};  //no need to decoder 
+// //J
+//     assign imm_J    = {inst_i[31], inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};  //no need to decoder 
 
 
 //decoder
@@ -522,12 +517,10 @@ module ysyx_2022040010_id (
     wire inst_div,   inst_divu,    inst_divw,  inst_divuw;
     wire inst_remw,  inst_remuw,   inst_rem,   inst_remu;
     
-//alu_op  13:0 14
+//alu_op 11:0 12
     wire op_add,    op_sub,     op_slt,  op_sltu;
     wire op_and,    op_or,      op_xor;            //op_nor
     wire op_sll,    op_srl,     op_sra;
-    wire op_lui;
-    wire op_auipc;
     wire op_nop;
     wire op_sp;
 
@@ -636,10 +629,10 @@ module ysyx_2022040010_id (
                             | inst_sh    |  inst_sw      |   inst_sd; 
     
     // pc to src1
-    assign sel_alu_src1[1]  = inst_jal   |  inst_jalr;
+    assign sel_alu_src1[1]  = inst_auipc;
     
-    //special handle
-    assign sel_alu_src1[2]  = inst_lui   |  inst_auipc;
+    //nop
+    assign sel_alu_src1[2]  = inst_lui;
     
 
     //rs2 to src2
@@ -651,7 +644,7 @@ module ysyx_2022040010_id (
     /// imm_sign_extend to src2 I-type
     assign sel_alu_src2[1]  = inst_addi  |   inst_addiw  |  inst_slti   |   inst_sltiu
                             | inst_xori  |   inst_ori    |  inst_andi   |   inst_lb
-                            | inst_lh    |   inst_lw     |  inst_ld     |   inst_jal;
+                            | inst_lh    |   inst_lw     |  inst_ld;
 
     //spcial handle
     assign sel_alu_src2[2]  = inst_lui   |   inst_auipc;
@@ -662,12 +655,12 @@ module ysyx_2022040010_id (
     //shamt to src2
     assign sel_alu_src2[4]  = inst_slli  |   inst_srli   |   inst_srai   
                             | inst_slliw |   inst_srliw  |   inst_sraiw;   
-//TODO:modify  add sel_alu_src2_bus
-    //imm_sign_extend to src2 J-type
-    assign sel_alu_src2[5]  = inst_jalr;                  
+         
 
 //ALU-special
     assign op_sp    =   inst_ecall  | inst_ebreak;
+    wire [`SP_BUS] sp_bus;
+    assign sp_bus   =   {inst_ecall,    inst_ebreak}; 
 //special end
 
     assign op_add   =   inst_add    |   inst_addw   |   inst_addi   |   inst_addiw  
@@ -689,8 +682,8 @@ module ysyx_2022040010_id (
 
     assign alu_op   =   {   op_add,     op_sub,     op_slt,         op_sltu ,
                             op_and,     op_or,      op_xor,
-                            op_sll,     op_srl,     op_sra,         op_lui,     op_auipc,
-                            op_nop,     op_sp};
+                            op_sll,     op_srl,     op_sra,
+                            op_nop,     op_sp   };
 
     assign mul_op   =   {   inst_mul,   inst_mulh,  inst_mulhsu,    inst_mulhu, inst_mulw };
     
@@ -769,35 +762,7 @@ module ysyx_2022040010_id (
     //                         |   inst_beq    |   inst_bne    |   inst_blt
     //                         |   inst_bge    |   inst_bltu   |   inst_bgeu;
 
-    assign id_to_ex_bus = {
-        bru_op,
-        lsu_8,
-        lsu_16,
-        lsu_32,
-        lsu_64,
-        mul_32,
-        div_32,
-        alu_32,
-        mem_op,         // 320:310
-        mul_op,         // 309:305
-        rem_op
-        div_op,         // 304:301
-        sru_op,         // 300:255
-        // hilo_op,        // 227:220
-        // hi, lo,         // 219:156
-        id_pc,          // 254:191
-        inst_i,           // 190:159
-        alu_op,         // 158:145
-        sel_alu_src1,   // 144:142
-        sel_alu_src2,   // 141:137
-        dram_e,         // 136
-        dram_we,        // 135
-        rf_we,          // 134
-        rd,             // 133:129
-        sel_rf_res,     // 128
-        rs1_data,            // 127:64
-        rs2_data        // 63:0
-    };
+
 
     wire [ 7: 0] bru_op;
     assign bru_op   =   {   inst_jal,   inst_jalr,  inst_beq,   inst_bne,   inst_blt,
@@ -840,14 +805,6 @@ module ysyx_2022040010_id (
     //                 : inst_jal  ? (pc_plus_4 + {{44{inst[19]}}, imm_j} )
     //                 : inst_jalr ? (pc_plus_4 + {{52{inst[12]}}, imm_I}&(~64'b1) );
 
-    // assign br_bus   = { bru_e,
-    //                     bru_addr    };
-
-
-
-
-
-
 
     wire lsu_8, lsu_16, lsu_32, lsu_64, mul_32, div_32, alu_32;
     
@@ -860,6 +817,35 @@ module ysyx_2022040010_id (
                     |   inst_srliw  |   inst_sraiw  |   inst_sllw   |   inst_srlw
                     |   inst_sraw;
     assign  lsu_64   =   inst_sd     |   inst_ld;
+
+    assign id_to_ex_bus = {
+        sp_bus,         // 361:360
+        lsu_8,          // 359
+        lsu_16,
+        lsu_32,
+        lsu_64,
+        mul_32,
+        div_32,
+        alu_32,
+        mem_op,         // 352:342
+        mul_op,         // 341:337
+        rem_op,         // 336:333
+        div_op,         // 332:329
+        sru_op,         // 328:253
+        ex_pc,          // 252:189
+        inst_i,         // 188:157
+        alu_op,         // 156:145
+        sel_alu_src1,   // 144:142
+        sel_alu_src2,   // 141:137 
+        dram_e,         // 136
+        dram_we,        // 135
+        rf_we,          // 134
+        rf_waddr,       // 133:129
+        sel_rf_res,     // 128
+        rf_rdata1,       // 127:64
+        rf_rdata2        // 63:0
+    };
+
 
 endmodule
 
