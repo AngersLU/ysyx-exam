@@ -1,5 +1,6 @@
 
-`inculude "defines.v"
+`include "defines.v"
+`timescale 1ns/1ns
 // virtual address -> physical address
 // memory manage unit
 module ysyx_2022040010_mmu (

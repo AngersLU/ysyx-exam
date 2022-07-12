@@ -13,7 +13,7 @@ extern "C" {
 
 
     // DPI IMPORTS
-    // DPI import at /home/lff/ysyx-workbench/npc/vsrc/id_stage.v:40:34
+    // DPI import at /home/lff/ysyx-workbench/npc/vsrc/exe_stage.v:549:34
     extern void ebreak();
 
 #ifdef __cplusplus

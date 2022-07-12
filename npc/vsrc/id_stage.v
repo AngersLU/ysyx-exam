@@ -263,30 +263,28 @@
 // endmodule
 
 `include "defines.v"
+`timescale 1ns/1ns
 module ysyx_2022040010_id (
     input wire clk,
     input wire rst,
     
-    input wire [`StallBus-1:0] stall;
+    // input wire [`StallBus] stall,
 
-    input wire [`IF_TO_ID-1:0] if_to_id_bus,
+    input wire [`IF_TO_ID_BUS] if_to_id_bus,
 
     input wire [31:0] isram_rdata,
 
-
-
 // BypassBus replace
-    input wire [`EX_TO_RF_WD-1:0]  ex_to_rf_bus,
-    input wire [`MEM_TO_RF_WD-1:0] mem_to_rf_bus,
-    input wire [`WB_TO_EX_WD-1:0]  wb_to_rf_bus,
+    input wire [`BP_TO_RF_BUS]  ex_to_rf_bus,
+    input wire [`BP_TO_RF_BUS] mem_to_rf_bus,
+    input wire [`BP_TO_RF_BUS]  wb_to_rf_bus,
 //
 
-    output wire [`ID_TO_EX_WD-1:0]  id_to_ex_bus,
+    output wire [`ID_TO_EX_BUS]  id_to_ex_bus
 );
 
     reg [`IF_TO_ID_WD-1:0] if_to_id_bus_r;
-    wire [31:0] inst_i;
-    wire [63:0] id_pc;
+
     wire ce;
 
     wire ex_rf_we, mem_rf_we, wb_rf_we;
@@ -296,25 +294,41 @@ module ysyx_2022040010_id (
     reg flag;
     reg [31:0] buf_inst;
 
-    always @(posedge clk) begin
-        if (rst) begin
+    // always @(posedge clk) begin
+    //     if (rst) begin
+    //         if_to_id_bus_r <= `IF_TO_ID_WD'b0;
+    //         flag <=1'b0;
+    //         buf_inst <= 32'b0;
+    //     end
+    //     else if (stall[1]==`Stop && stall[2]==`NoStop) begin
+    //         if_to_id_bus_r <= `IF_TO_ID_WD'b0;
+    //         flag <= 1'b0;
+    //     end
+    //     else if (stall[1]==`NoStop) begin   //TODO:not understand
+    //         if_to_id_bus_r <= if_to_id_bus;
+    //         flag <= 1'b0;
+    //     end
+    //     else if (stall[1]==`Stop && stall[2]==`Stop && ~flag) begin
+    //         flag <= 1'b1;
+    //         buf_inst <= isram_rdata;
+    //     end
+    // end
+
+
+    always @( posedge clk) begin
+        if ( rst ) begin
             if_to_id_bus_r <= `IF_TO_ID_WD'b0;
             flag <=1'b0;
             buf_inst <= 32'b0;
         end
-        lse if (stall[1]==`Stop && stall[2]==`NoStop) begin
-            if_to_id_bus_r <= `IF_TO_ID_WD'b0;
-            flag <= 1'b0;
-        end
-        else if (stall[1]==`NoStop) begin   //TODO:not understand
+        else begin
             if_to_id_bus_r <= if_to_id_bus;
             flag <= 1'b0;
+            buf_inst <= 32'b0;
         end
-        else if (stall[1]==`Stop && stall[2]==`Stop && ~flag) begin
-            flag <= 1'b1;
-            buf_inst <= isram_rdata;
-        end
-    end
+    end 
+
+
     //buf_inst bounce point of brunch instruction ?
     assign inst_i = ce ? flag ? buf_inst : isram_rdata : 32'b0;
 
@@ -343,7 +357,7 @@ module ysyx_2022040010_id (
 
 
 
-    wire [6:0]  opcoed = inst_i[6:0];
+    wire [6:0]  opcode = inst_i[6:0];
 /* TYPE = R R_type need opcode + func3 + func7 to decide alu(or other operation) type */
 /*************************************************************************/
 //[31 func7 25] [24 rs2 20] [19 rs1 15] [14 func3 12] [11 rd 7] [6 opcode 0]
@@ -410,15 +424,17 @@ module ysyx_2022040010_id (
 
 
 
+
+
 //R
-    assign opcoed   = inst_i[6:0];
+    assign opcode   = inst_i[6:0];
     assign rs1      = inst_i[19:15]; 
     assign rs2      = inst_i[24:20];
     assign rd       = inst_i[11:7];
     assign func3    = inst_i[14:12];
     assign func7    = inst_i[31:25];
 
-    regfile regfile_id(
+    ysyx_2022040010_regfile regfile_id(
         .clk    (clk    ),
         .rst    (rst    ),
 
@@ -438,19 +454,15 @@ module ysyx_2022040010_id (
 
 
 // TODO: rdata1 & rdata2 will be replaced by sel_rs1_forward & rs_forward_data
-    assign rdata1 = (ex_rf_we  & (ex_rf_waddr  == rs)) ? ex_rf_wdata    :
-                    (mem_rf_we & (mem_rf_waddr == rs)) ? mem_rf_wdata   :
-                    (wb_rf_we  & (wb_rf_waddr  == rs)) ? wb_rf_wdata    :
-                                                         rs1_data;
-    assign rdata2 = (ex_rf_we  & (ex_rf_waddr  == rt)) ? ex_rf_wdata    :
-                    (mem_rf_we & (mem_rf_waddr == rt)) ? mem_rf_wdata   :
-                    (wb_rf_we  & (wb_rf_waddr  == rt)) ? wb_rf_wdata    :
-                                                         rs2_data;
-//
-
-
-
-
+    assign rf_rdata1 =  (ex_rf_we  & (ex_rf_waddr  == rs1)) ? ex_rf_wdata    :
+                        (mem_rf_we & (mem_rf_waddr == rs1)) ? mem_rf_wdata   :
+                        (wb_rf_we  & (wb_rf_waddr  == rs1)) ? wb_rf_wdata    :
+                                                              rs1_data;
+    assign rf_rdata2 =  (ex_rf_we  & (ex_rf_waddr  == rs2)) ? ex_rf_wdata    :
+                        (mem_rf_we & (mem_rf_waddr == rs2)) ? mem_rf_wdata   :
+                        (wb_rf_we  & (wb_rf_waddr  == rs2)) ? wb_rf_wdata    :
+                                                              rs2_data;
+    assign rf_waddr =   rd;
 
 
 // //TODO:need to SEXT?
@@ -504,12 +516,12 @@ module ysyx_2022040010_id (
     wire inst_sb,   inst_sh,    inst_sw,    inst_sd;
 
 //BRU --branch
-    wire inst_jal,  jalr;
+    wire inst_jal,  inst_jalr;
     wire inst_beq,  inst_bne, inst_blt, inst_bge, inst_bltu, inst_bgeu;
 
 
 //CSR --special register
-    wire inst_csrrw, inst_csrrs, inst_csrrc,     inst_csrrwi,    inst_csrrsi,    inst_carrci;
+    wire inst_csrrw, inst_csrrs, inst_csrrc,     inst_csrrwi,    inst_csrrsi,    inst_csrrci;
 //MUL   *
     wire inst_mul,   inst_mulh,  inst_mulhsu,    inst_mulhu;
     wire inst_mulw;
@@ -576,7 +588,7 @@ module ysyx_2022040010_id (
     assign inst_sd      =   op_d[7'b0100_011] & func3_d[3'b011];
 //BRU
     assign inst_jal     =   op_d[7'b1101_111];
-    assign inst_jalr    =   op_d[7'b11100111] & func3_d[3'b000];
+    assign inst_jalr    =   op_d[7'b1100_111] & func3_d[3'b000];
     assign inst_beq     =   op_d[7'b1100_011] & func3_d[3'b000];
     assign inst_bne     =   op_d[7'b1100_011] & func3_d[3'b001];
     assign inst_blt     =   op_d[7'b1100_011] & func3_d[3'b100];
@@ -607,14 +619,7 @@ module ysyx_2022040010_id (
     assign inst_remw    =   op_d[7'b0111_011] & func3_d[3'b110] & func7_d[7'b0000_001];
     assign inst_remuw   =   op_d[7'b0111_011] & func3_d[3'b111] & func7_d[7'b0000_001];
 
-    wire [`AluSel1Bus] sel_alu_src1; //alu src1 classification
-    wire [`AluSel2Bus] sel_alu_src2; //alu src2 classification
-    wire [`AluOpBus] alu_op;       //classify instruction into alu
-    wire [ 4:0] mul_op;       //classify instruction into mul
-    wire [ 3:0] div_op;       //classify instruction into div
-    wire [ 3:0] rem_op;
-    wire [10:0] mem_op;       //classify instruction into mem
-    wire [ 5:0] sru_op;   
+
 
     // rs1 to src1
     assign sel_alu_src1[0]  = inst_addi  |  inst_addiw   |   inst_add    |   inst_addw   
@@ -644,22 +649,19 @@ module ysyx_2022040010_id (
     /// imm_sign_extend to src2 I-type
     assign sel_alu_src2[1]  = inst_addi  |   inst_addiw  |  inst_slti   |   inst_sltiu
                             | inst_xori  |   inst_ori    |  inst_andi   |   inst_lb
-                            | inst_lh    |   inst_lw     |  inst_ld;
+                            | inst_lh    |   inst_lw     |  inst_ld     |   inst_lbu   |   inst_lhu    |  inst_lwu;
 
     //spcial handle
     assign sel_alu_src2[2]  = inst_lui   |   inst_auipc;
 
-    // imm_zero_extend to src2
-    assign sel_alu_src2[3]  = inst_lbu   |   inst_lhu    |  inst_lwu;
-
     //shamt to src2
-    assign sel_alu_src2[4]  = inst_slli  |   inst_srli   |   inst_srai   
+    assign sel_alu_src2[3]  = inst_slli  |   inst_srli   |   inst_srai   
                             | inst_slliw |   inst_srliw  |   inst_sraiw;   
          
 
 //ALU-special
     assign op_sp    =   inst_ecall  | inst_ebreak;
-    wire [`SP_BUS] sp_bus;
+
     assign sp_bus   =   {inst_ecall,    inst_ebreak}; 
 //special end
 
@@ -674,7 +676,7 @@ module ysyx_2022040010_id (
     assign op_sll   =   inst_sll    |   inst_slli   |   inst_slliw  |   inst_sllw;
     assign op_srl   =   inst_srl    |   inst_srli   |   inst_srliw  |   inst_srlw;
     assign op_sra   =   inst_sra    |   inst_srai   |   inst_sraiw  |   inst_sraw;
-    assign op_and   =   inst_and    |   inst_andi   |   inst_carrc  |   inst_csrrci;
+    assign op_and   =   inst_and    |   inst_andi   |   inst_csrrc  |   inst_csrrci;
     assign op_or    =   inst_or     |   inst_ori    |   inst_csrrs  |   inst_csrrsi;
     assign op_xor   =   inst_xor    |   inst_xori;
     assign op_nop   =   inst_lui    |   inst_csrrw  |   inst_csrrwi;
@@ -697,9 +699,9 @@ module ysyx_2022040010_id (
     //specail_regs_u
     assign sru_op   =   {   inst_csrrw, inst_csrrs, inst_csrrc,     
                             inst_csrrwi,inst_csrrsi,inst_csrrci };
-    
-    wire dram_e; 
-    wire dram_we;
+
+
+
     //data ram load and store enable
     assign dram_e   =   inst_lb     |   inst_lh     |   inst_lw     |   inst_ld
                     |   inst_lbu    |   inst_lhu    |   inst_lwu
@@ -708,11 +710,12 @@ module ysyx_2022040010_id (
     assign dram_we  =   inst_sb     |   inst_sh     |   inst_sw     |   inst_sd;
 
     // 0 regfiel res from alu_res ; 1 form ld_res 
-    assign sel_rf_res   =   inst_lb     |   inst_lh     |   inst_lw     |   inst_ld,
-                            inst_lbu    |   inst_lhu    |   inst_lwu;
+    
+    assign sel_rf_res   =   inst_lb     |   inst_lh     |   inst_lw     |   inst_ld
+                        |   inst_lbu    |   inst_lhu    |   inst_lwu;
 
-    assign stallreq_reg_load = inst_lb  |   inst_lh     |   inst_lw     |   inst_ld,
-                               inst_lbu |   inst_lhu    |   inst_lwu;
+    // assign stallreq_reg_load = inst_lb  |   inst_lh     |   inst_lw     |   inst_ld
+    //                         |  inst_lbu |   inst_lhu    |   inst_lwu;
 
     //regfile store enable
     assign rf_we    =   inst_lui    |   inst_auipc  |   inst_jal    |   inst_jalr
@@ -806,7 +809,7 @@ module ysyx_2022040010_id (
     //                 : inst_jalr ? (pc_plus_4 + {{52{inst[12]}}, imm_I}&(~64'b1) );
 
 
-    wire lsu_8, lsu_16, lsu_32, lsu_64, mul_32, div_32, alu_32;
+
     
     assign  lsu_8   =   inst_lb     |   inst_lbu    |   inst_sb;
     assign  lsu_16  =   inst_lh     |   inst_lhu    |   inst_sh;    
@@ -818,32 +821,53 @@ module ysyx_2022040010_id (
                     |   inst_sraw;
     assign  lsu_64   =   inst_sd     |   inst_ld;
 
+
+    wire [`SP_BUS]      sp_bus;
+    wire lsu_8, lsu_16, lsu_32, lsu_64, mul_32, div_32, alu_32;
+    wire [10:0]         mem_op;       //classify instruction into mem
+    wire [ 4:0]         mul_op;       //classify instruction into mul
+    wire [ 3:0]         rem_op;
+    wire [ 3:0]         div_op;       //classify instruction into div
+    wire [ 5:0]         sru_op;   
+    wire [63:0]         id_pc;
+    wire [31:0]         inst_i;
+    wire [`AluOpBus]    alu_op;       //classify instruction into alu
+    wire [`AluSel1Bus]  sel_alu_src1; //alu src1 classification
+    wire [`AluSel2Bus]  sel_alu_src2; //alu src2 classification  
+    wire dram_e; 
+    wire dram_we;
+    wire rf_we;
+    wire [ 4: 0] rf_waddr;
+    wire sel_rf_res;
+    wire [63: 0] rf_rdata1;
+    wire [63: 0] rf_rdata2;
+    
     assign id_to_ex_bus = {
-        sp_bus,         // 361:360
-        lsu_8,          // 359
-        lsu_16,
-        lsu_32,
-        lsu_64,
-        mul_32,
-        div_32,
-        alu_32,
-        mem_op,         // 352:342
-        mul_op,         // 341:337
-        rem_op,         // 336:333
-        div_op,         // 332:329
-        sru_op,         // 328:253
-        ex_pc,          // 252:189
-        inst_i,         // 188:157
-        alu_op,         // 156:145
-        sel_alu_src1,   // 144:142
-        sel_alu_src2,   // 141:137 
-        dram_e,         // 136
-        dram_we,        // 135
-        rf_we,          // 134
-        rf_waddr,       // 133:129
-        sel_rf_res,     // 128
-        rf_rdata1,       // 127:64
-        rf_rdata2        // 63:0
+        sp_bus,         //291
+        lsu_8,          //289
+        lsu_16,         //288
+        lsu_32,         //287
+        lsu_64,         //286
+        mul_32,         //285
+        div_32,         //284
+        alu_32,         //283
+        mem_op,         //282
+        mul_op,         //271
+        rem_op,         //266
+        div_op,         //262
+        sru_op,         //258
+        id_pc,          //252
+        inst_i,         //188
+        alu_op,         //156
+        sel_alu_src1,   //144
+        sel_alu_src2,   //141
+        dram_e,         //137
+        dram_we,        //136
+        rf_we,          //135
+        rf_waddr,       //134
+        sel_rf_res,     //129
+        rf_rdata1,      //128
+        rf_rdata2       //64
     };
 
 

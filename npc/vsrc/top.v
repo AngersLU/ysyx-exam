@@ -1,6 +1,5 @@
 //sopc = fsl + rom
 
-`include "defines.v"
 
 // module ysyx_2022040010_top (
 //     input wire clk,
@@ -24,8 +23,10 @@
 //                         .inst(inst_data)    );
 //                         //->fsl0.inst_data_i
 
-// endmodule
+// endmodule'
 
+`include "defines.v"
+`timescale 1ns/1ns
 
 module ysyx_2022040010_top (
     input wire clk,
@@ -35,7 +36,7 @@ module ysyx_2022040010_top (
     // output wire isram_we,
     output wire [63: 0] isram_addr,
     // output wire [63: 0] isram_wdata,
-    input wire [63: 0] isram_rdata,
+    input wire [31: 0] isram_rdata,
 
     output wire dsram_e,
     output wire dsram_we,
@@ -54,7 +55,7 @@ module ysyx_2022040010_top (
     // output wire [63: 0] debug_wb_rf_wdata 
 );
 
-    wire [63: 0] isram_addr_v, dsram_v; 
+    wire [63: 0] isram_addr_v, dsram_addr_v; 
 
     ysyx_2022040010_fsl fslu (
         .clk            (clk         ),
@@ -62,8 +63,8 @@ module ysyx_2022040010_top (
         .isram_e        (isram_e     ),
         .isram_addr     (isram_addr_v),
         .isram_rdata    (isram_rdata ),
-        .dsram_e        (dram_e      ),
-        .dsram_we       (dram_we     ),
+        .dsram_e        (dsram_e      ),
+        .dsram_we       (dsram_we     ),
         .dsram_addr     (dsram_addr_v),
         .dsram_wdata    (dsram_wdata ),
         .dsram_rdata    (dsram_rdata )

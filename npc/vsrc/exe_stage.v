@@ -8,8 +8,6 @@
 
 // endmodule
 
-// `include "defines.v"
-
 // module ysyx_2022040010_ex (
 //     input wire rst,
 
@@ -92,6 +90,13 @@
 
 // endmodule
 
+
+
+
+
+`include "defines.v"
+`timescale 1ns/1ns
+
 module ysyx_2022040010_ex (
     input wire clk,
     input wire rst,
@@ -99,93 +104,104 @@ module ysyx_2022040010_ex (
     // input wire [`StallBus-1:0] stall,
     // output wire stallreq_for_ex,    //TODO:?
 
-    input wire [`ID_TO_EX_WD-1:0] id_to_ex_bus;
+    input wire [`ID_TO_EX_BUS] id_to_ex_bus,
 
-    output wire [`EX_TO_MEM_WD-1:0] ex_to_mem_bus;
+    output wire [`EX_TO_MEM_BUS] ex_to_mem_bus,
 
     output wire [`BP_TO_RF_BUS] ex_to_rf_bus,
 
-    output [`BR_TO_IF_BUS] br_bus,
+    output wire [`BR_TO_IF_BUS] br_bus,
 
     // line 272
     output wire dsram_e,
-    output wire [3 : 0] dsram_we,
-    output wire [31: 0] dsram_addr,
-    output wire [31: 0] dsram_wdata
+    output wire dsram_we,
+    output wire [63: 0] dsram_addr,
+    output wire [63: 0] dsram_wdata
 
 );
 
-    reg [`ID_TO_EX_WD-1:0] id_to_ex_bus_r;
+    reg [`ID_TO_EX_BUS] id_to_ex_bus_r;
 
-    always @ (posedge clk) begin
-        if (rst) begin
+    // always @ (posedge clk) begin
+    //     if (rst) begin
+    //         id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
+    //     end
+    //     else if (stall[2] == `Stop && stall[3] == `NoStop) begin
+    //         id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
+    //     end
+    //     else if (stall[2] == `NoStop) begin
+    //         id_to_ex_bus_r <= id_to_ex_bus;
+    //     end
+    // end
+
+    always @( posedge clk) begin
+        if( rst ) begin
             id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
         end
-        else if (stall[2] == `Stop && stall[3] == `NoStop) begin
-            id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
-        end
-        else if (stall[2] == `NoStop) begin
+        else begin
             id_to_ex_bus_r <= id_to_ex_bus;
         end
     end
     
-    wire [31: 0]        inst_i;
-    wire [63: 0]        ex_pc;
-    wire [`AluOpBus]    alu_op;
-    wire [`AluSel1Bus]  sel_alu_src1; //alu src1 classification
-    wire [`AluSel2Bus]  sel_alu_src2; //alu src2 classification
 
-    wire [`AluOpBus]    alu_op;         //classify instruction into alu
+    wire [`SP_BUS] sp_bus;
+    wire lsu_8, lsu_16, lsu_32, lsu_64, mul_32, div_32, alu_32;
     wire [10: 0]        mem_op;       //classify instruction into mem
     wire [ 4: 0]        mul_op;       //classify instruction into mul
     wire [ 3: 0]        div_op;       //classify instruction into div
     wire [ 3: 0]        rem_op;
     wire [ 5: 0]        sru_op;       //classify instruction into sru-special registers
-
+    wire [63: 0]        ex_pc;
+    wire [31: 0]        inst_i;    
+    wire [`AluOpBus]    alu_op;  
+    wire [`AluSel1Bus]  sel_alu_src1; //alu src1 classification
+    wire [`AluSel2Bus]  sel_alu_src2; //alu src2 classification
     wire dram_e;
-    wire dram_we;
+    wire dram_we;     
     wire rf_we;
     wire [ 4: 0] rf_waddr;
     wire sel_rf_res;
     wire [63: 0] rf_rdata1;
     wire [63: 0] rf_rdata2;
-    wire lsu_8, lsu_16, lsu_32, lsu_64, mul_32, div_32, alu_32;
 
     assign  {
-        sp_bus,         // 361:360
-        lsu_8,          // 359
-        lsu_16,
-        lsu_32,
-        lsu_64,
-        mul_32,
-        div_32,
-        alu_32,
-        mem_op,         // 352:342
-        mul_op,         // 341:337
-        rem_op,         // 336:333
-        div_op,         // 332:329
-        sru_op,         // 328:253
-        ex_pc,          // 252:189
-        inst_i,         // 188:157
-        alu_op,         // 156:145
-        sel_alu_src1,   // 144:142
-        sel_alu_src2,   // 141:137 
-        dram_e,         // 136
-        dram_we,        // 135
-        rf_we,          // 134
-        rf_waddr,       // 133:129
-        sel_rf_res,     // 128
-        rf_rdata1,       // 127:64
-        rf_rdata2        // 63:0
+        sp_bus,         //291
+        lsu_8,          //289
+        lsu_16,         //288
+        lsu_32,         //287
+        lsu_64,         //286
+        mul_32,         //285
+        div_32,         //284
+        alu_32,         //283
+        mem_op,         //282
+        mul_op,         //271
+        rem_op,         //266
+        div_op,         //262
+        sru_op,         //258
+        ex_pc,         //252
+        inst_i,         //188
+        alu_op,         //156
+        sel_alu_src1,   //144
+        sel_alu_src2,   //141
+        dram_e,         //137
+        dram_we,        //136
+        rf_we,          //135
+        rf_waddr,       //134
+        sel_rf_res,     //129
+        rf_rdata1,      //128
+        rf_rdata2       //64
     } = id_to_ex_bus_r;
+
+
+    
 
     wire [ 5:0] shamt;
 
     wire [11:0] imm_I;
     wire [11:0] imm_S;
-    wire [11:0] imm_B;
+    wire [12:0] imm_B;
 
-    wire [19:0] imm_J;
+    wire [20:0] imm_J;
     wire [19:0] imm_U;   
 //I
     assign imm_I    = inst_i[31:20];    //no need to decoder
@@ -208,12 +224,14 @@ module ysyx_2022040010_ex (
 */
 // alu
 // TODO:这种extend的方法是否对riscv64可行
-    wire [63: 0] imm_I_sign_extend, imm_S_sign_extend, imm_B_sign_extend,
-                 imm_I_zero_extend, imm_S_zero_extend, imm_B_zero_extend;
-    wire [63: 0] imm_U_sign_extend, imm_J_sign_extend,
-                 imm_U_zero_extend, imm_J_zero_extend;
+    wire [63: 0] imm_I_sign_extend, imm_S_sign_extend, imm_B_sign_extend;
+                //  imm_I_zero_extend, imm_S_zero_extend, imm_B_zero_extend;
+    wire [63: 0] imm_U_sign_extend, imm_J_sign_extend;
+                //  imm_U_zero_extend, imm_J_zero_extend;
 
     wire [63: 0] shamt_zero_extend;
+    wire [63: 0] imm_U_sp_extend;
+    wire [63: 0] imm_I_jalr_extend; 
 
     assign imm_I_sign_extend  = { {52{imm_I[11]}}, imm_I[11:0]};
     assign imm_S_sign_extend  = { {52{imm_S[11]}}, imm_S[11:0]};
@@ -222,17 +240,18 @@ module ysyx_2022040010_ex (
     assign imm_U_sign_extend  = { {44{imm_U[19]}}, imm_U[19:0]};
     assign imm_J_sign_extend  = { {44{imm_J[19]}}, imm_J[19:0]};
 
-    assign imm_I_zero_extend  = { 52'b0, imm_I[11:0]};
-    assign imm_S_zero_extend  = { 52'b0, imm_S[11:0]};
-    assign imm_B_zero_extend  = { 52'b0, imm_B[11:0]};  
+    // assign imm_I_zero_extend  = { 52'b0, imm_I[11:0]};
+    // assign imm_S_zero_extend  = { 52'b0, imm_S[11:0]};
+    // assign imm_B_zero_extend  = { 52'b0, imm_B[11:0]};  
 
-    assign imm_U_zero_extend  = { 44'b0, imm_U[19:0]};
-    assign imm_J_zero_extend  = { 44'b0, imm_J[19:0]};
+    // assign imm_U_zero_extend  = { 44'b0, imm_U[19:0]};
+    // assign imm_J_zero_extend  = { 44'b0, imm_J[19:0]};
 
     assign shamt_zero_extend  = { 58'b0, shamt[ 5:0]};
 
 //   sel_alu_src1[2]  special handle
-    assign imm_U_sp_extend = { 32{imm_U[19]}, imm_U[19:0], 12'b0 };
+    assign imm_U_sp_extend = { {32{imm_U[19]}}, imm_U[19:0], 12'b0 };
+    assign imm_I_jalr_extend = { {imm_I_sign_extend}&{~64'b1}};
 
     wire [63:0] alu_src1,   alu_src2;
     wire [63:0] alu_result, ex_result;
@@ -245,8 +264,7 @@ module ysyx_2022040010_ex (
 
     assign alu_src2 =   sel_alu_src2[1] ? imm_I_sign_extend :
                         sel_alu_src2[2] ? imm_U_sp_extend   :
-                        sel_alu_src2[3] ? imm_I_zero_extend :
-                        sel_alu_src2[4] ? shamt_zero_extend :
+                        sel_alu_src2[3] ? shamt_zero_extend :
                         sel_rs2_forward ? rs2_forward_data  : rf_rdata2;
 
     alu alu_ex( 
@@ -269,7 +287,7 @@ module ysyx_2022040010_ex (
          inst_sb, inst_sh,  inst_sw, inst_sd
     } = mem_op[ 3: 0];
 
-    assign load_op = mem_op[10: 4]
+    assign load_op = mem_op[10: 4];
 
     assign sel_lsu_byte =   {lsu_64, lsu_32, lsu_16, lsu_8};
 //mem_op == 1 & dsram_we == 0 dsram_addr != 64'b0 -> load operation
@@ -282,11 +300,12 @@ module ysyx_2022040010_ex (
     // dsram_we == 4'b0010  dsram_wdata[16: 0]
     // dsram_we == 4'b0100  dsram_wdata[31: 0]
     // dsram_we == 4'b1000  dsram_wdata[64: 0]
-    assign dsram_we =   {4{dram_we}}&sel_lsu_byte;  
+    // assign dsram_we =   {4{dram_we}}&sel_lsu_byte;  
     assign dsram_addr   =   ex_result;
-    assign dsram_wdata  =   inst_sb ? { {66{rf_rdata2[ 7]}}, rf_rdata2[ 7: 0]} :
-                            inst_sh ? { {48{rf_rdata2[15]}}, rf_rdata2[15: 0]} :
-                            inst_sw ? { {32{rf_rdata2[31]}}, rf_rdata2[31: 0]} :
+//TODO: modify
+    assign dsram_wdata  =   inst_sb ? { {56{1'b0}}, rf_rdata2[ 7: 0]} :
+                            inst_sh ? { {48{1'b0}}, rf_rdata2[15: 0]} :
+                            inst_sw ? { {32{1'b0}}, rf_rdata2[31: 0]} :
                             rf_rdata2;
 
 // mul & div
@@ -328,12 +347,12 @@ module ysyx_2022040010_ex (
         .ret            (rst            ),
         .mul_32         (mul_32         ),  
         .mul_ina_s      (mul_ina_s      ),
-        .ina            (rf_rdata1      ),
+        .ina            (real_data1      ),
         .mul_inb_s      (mul_inb_s      ),
-        .inb            (rd_rdata2      ),
-        .sel_mul_hilo   (sel_mul_hilo  ),
+        .inb            (real_data2      ),
+        .sel_mul_hilo   (sel_mul_hilo   ),
 
-        .result         (mul_result     ),
+        .mul_result     (mul_result     ),
         .mul_over       (mul_over       )
     );
 
@@ -352,8 +371,8 @@ module ysyx_2022040010_ex (
     }   =   rem_op;
 
     wire div_over;
-    reg stallreq_for_div;
-    assign stallreq_for_ex = stallreq_for_div;
+    // reg stallreq_for_div;
+    // assign stallreq_for_ex = stallreq_for_div;
 
     reg [63: 0] div_data1;
     reg [63: 0] div_data2;
@@ -364,18 +383,19 @@ module ysyx_2022040010_ex (
 
     wire [ 1: 0] div_res_sel;
     // 1 sel div result , 0 sel  rem
-    assign div_res_sel = {div_op, rem_op};  
+    assign div_res_sel = {  {inst_div | inst_divu | inst_divw | inst_divuw }, 
+                            {inst_rem | inst_remu | inst_remw | inst_remuw }};  
     wire [63:0] div_data1_32;
     wire [63:0] div_data1_i;
     wire [63:0] div_data2_32;
     wire [63:0] div_data2_i;
 
-    assign div_data1_32 = div_signed ? {32{div_data1[31]}, div_data1[31:0]} : {32{1'b0}, div_data1[31:0]};
+    assign div_data1_32 = div_signed ? { {32{div_data1[31]}}, div_data1[31:0]} : { {32{1'b0}}, div_data1[31:0]};
     assign div_data1_i = div_32 ? div_data1_32 : div_data1;
-    assign div_data2_32 = div_signed ? {32{div_data2[31]}, div_data2[31:0]} : {32{1'b0}, div_data2[31:0]};
+    assign div_data2_32 = div_signed ? { {32{div_data2[31]}}, div_data2[31:0]} : { {32{1'b0}}, div_data2[31:0]};
     assign div_data2_i = div_32 ? div_data2_32 : div_data2;
 
-    div div_ex(
+    ysyx_2022040010_div div_ex(
         .rst            (rst        ),
         .clk            (clk        ),
         .signed_div_i   (div_signed ),
@@ -386,7 +406,7 @@ module ysyx_2022040010_ex (
         .annul_i        (1'b0       ),
         .div_res_sel    (div_res_sel),
 
-        .div_res_o       (div_result ),
+        .div_res_o      (div_result ),
         .ready_o        (div_over   )
     );
 
@@ -399,56 +419,56 @@ module ysyx_2022040010_ex (
 
     always @ ( *) begin
         if ( rst) begin
-            stallreq_for_div = `NoStop;
+            // stallreq_for_div = `NoStop;
             div_data1 = `ZeroWord;
             div_data2 = `ZeroWord;
             div_start = `DivStop;
             div_signed = 1'b0;
         end
         else begin
-            stallreq_for_div = `NoStop;
+            // stallreq_for_div = `NoStop;
             div_data1 = `ZeroWord;
             div_data2 = `ZeroWord;
             div_start = `DivStop;
             div_signed = 1'b0;
             case ({sel_div_signed, sel_div_unsigned})
                 2'b10: begin
-                    if ( div_ready == `DivResultNotReady ) begin
+                    if ( div_over == `DivResultNotReady ) begin
                         div_data1 = rf_rdata1;
                         div_data2 = rf_rdata2;
                         div_start = `DivStart;
                         div_signed = 1'b1;
-                        stallreq_for_div = `Stop;  // stop stallreq
+                        // stallreq_for_div = `Stop;  // stop stallreq
                     end
-                    else if ( div_ready == `DivResultReady ) begin
+                    else if ( div_over == `DivResultReady ) begin
                         div_data1 = rf_rdata1;
                         div_data2 = rf_rdata2;
                         div_start = `DivStop;
                         div_signed = 1'b1;
-                        stallreq_for_div = `NoStop;
+                        // stallreq_for_div = `NoStop;
                     end
                     else begin
                         div_data1 = `ZeroWord;
                         div_data2 = `ZeroWord;
                         div_start = `DivStop;
                         div_signed = 1'b0;
-                        stallreq_for_div = `NoStop;
+                        // stallreq_for_div = `NoStop;
                     end
                 end
                 2'b01: begin
-                    if ( div_ready == `DivResultNotReady ) begin
+                    if ( div_over == `DivResultNotReady ) begin
                         div_data1 = rf_rdata1;
                         div_data2 = rf_rdata2;
                         div_start = `DivStart;
                         div_signed = 1'b0;
-                        stallreq_for_div = `Stop;  // stop stallreq
+                        // stallreq_for_div = `Stop;  // stop stallreq
                     end
-                    else if ( div_ready == `DivResultReady ) begin
+                    else if ( div_over == `DivResultReady ) begin
                         div_data1 = rf_rdata1;
                         div_data2 = rf_rdata2;
                         div_start = `DivStop;
                         div_signed = 1'b0;
-                        stallreq_for_div = `NoStop;
+                        // stallreq_for_div = `NoStop;
                     end
                     else begin
                         div_data1 = `ZeroWord;
@@ -471,7 +491,7 @@ module ysyx_2022040010_ex (
 
     assign  {   inst_jal,   inst_jalr,  inst_beq,   inst_bne,   inst_blt,
                 inst_bge,   inst_bltu,  inst_bgeu   
-    }   bru_op; 
+    }   = bru_op; 
 
     wire bru_e;
     wire [`InstAddrBus] bru_addr;
@@ -483,15 +503,17 @@ module ysyx_2022040010_ex (
     wire rs1_uge_rs2;
     wire [`InstAddrBus] pc_plus_4;
 
-    assign pc_plus_4 = id_pc + 64'h4;
+    assign pc_plus_4 = ex_pc + 64'h4;
 //TODO:放上面　＋　bypass_u\
     wire [63: 0] real_data1, real_data2;
     wire sel_rs1_forward, sel_rs2_forward;
-    wire [`BR_TO_IF_BUS] br_bus;
+    wire [63: 0] rs1_forward_data, rs2_forward_data;
 
     wire bru_e;
     wire [`InstAddrBus] bru_addr;
 
+
+//TODO:exu很多input　opdata还不是real_data
     assign real_data1 = sel_rs1_forward ? rs1_forward_data : rf_rdata1;
     assign real_data2 = sel_rs2_forward ? rs2_forward_data : rf_rdata2;
 
@@ -511,14 +533,14 @@ module ysyx_2022040010_ex (
                     | inst_bltu& rs1_ult_rs2
                     | inst_bgeu& rs1_uge_rs2;
 
-    assign bru_addr = inst_beq  ? (pc_plus_4 + {{52{inst[11]}}, imm_B} )
-                    : inst_bne  ? (pc_plus_4 + {{52{inst[11]}}, imm_B} )
-                    : inst_blt  ? (pc_plus_4 + {{52{inst[11]}}, imm_B} )
-                    : inst_bge  ? (pc_plus_4 + {{52{inst[11]}}, imm_B} )
-                    : inst_bltu ? (pc_plus_4 + {{52{inst[11]}}, imm_B} )
-                    : inst_bgeu ? (pc_plus_4 + {{52{inst[11]}}, imm_B} )
-                    : inst_jal  ? (pc_plus_4 + {{44{inst[19]}}, imm_j} )
-                    : inst_jalr ? (pc_plus_4 + {{52{inst[12]}}, imm_I}&(~64'b1) );
+    assign bru_addr = inst_beq  ? {pc_plus_4 + imm_B_sign_extend  }
+                    : inst_bne  ? {pc_plus_4 + imm_B_sign_extend  }
+                    : inst_blt  ? {pc_plus_4 + imm_B_sign_extend  }
+                    : inst_bge  ? {pc_plus_4 + imm_B_sign_extend  }
+                    : inst_bltu ? {pc_plus_4 + imm_B_sign_extend  }
+                    : inst_bgeu ? {pc_plus_4 + imm_B_sign_extend  }
+                    : inst_jal  ? {pc_plus_4 + imm_B_sign_extend  }
+                    : inst_jalr ? {pc_plus_4 + imm_I_jalr_extend  } : 64'b0;
 
     assign br_bus   = { bru_e,
                         bru_addr    };
@@ -528,10 +550,10 @@ module ysyx_2022040010_ex (
 
     always @ (*) begin
         if(alu_op[0] == 1 & sp_bus[0] == 1) begin
-            ebreak();
+            // ebreak();
         end
         else if ( alu_op[0] == 1 & sp_bus[1] == 1) begin
-            ecall();//TODO: no finished yet
+            // ecall();//TODO: no finished yet
         end
     end
 
@@ -546,21 +568,21 @@ module ysyx_2022040010_ex (
 
 // store instruction over    143: 0
     assign ex_to_mem_bus = {
-        load_op,    //143:137
-        ex_pc,      //136:73 
-        dram_e,     //    72
-        dram_we,    //    71 TODO:NOT USE
-        sel_lsu_byte,//70:67
+        load_op,    //143:137 148
+        ex_pc,      //136:73  141
+        dram_e,     //    72  77
+        dram_we,    //    71  76
+        sel_lsu_byte,//70:67  75
         //0 form alu_res, 1 from ld_res
-        sel_rf_res, //    66
-        rf_we,      //    65
-        rf_waddr,   // 68:64
-        ex_result   // 63: 0
+        sel_rf_res, //    66  71
+        rf_we,      //    65  70
+        rf_waddr,   // 68:64  69
+        ex_result   // 63: 0  64
     };
     // bypass ex_to_id
     assign ex_to_rf_bus = {
-        rf_w,       //    68
-        rf_waddr,   // 67:64
+        rf_we,       //    69
+        rf_waddr,   // 68:64
         ex_result   // 63: 0
     };
 

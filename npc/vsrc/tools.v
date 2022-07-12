@@ -1,46 +1,57 @@
+
+`include "defines.v"
+`timescale 1ns/1ns
+
 //decode func3 and rs1/2 rd
 module decoder_5_32 ( 
-    input  [4:0] in,
-    output [31:0] out
+    input wire [4:0] in,
+    output wire [31:0] out
 );
 
     genvar i;
-    gengrate for (i = 0; i < 32; i = i + 1) begin // 2^in_buslen=out_buslen 
-        assign out[i] = (in == i);
-    end
+    generate
+        for (i = 0; i < 32; i = i + 1) 
+            begin: decoder5
+                assign out[i] = (in == i);
+            end
     endgenerate
 endmodule
 
 //decode func7 and opcode
 module decoder_7_128 (
-    input  [6:0]   in,
-    output [127:0] out
+    input wire [6:0]   in,
+    output wire [127:0] out
 );
 
     genvar i;
-    gengrate for (i = 0; i < 127; i = i + 1) begin
-        assign out[i] = (in == i);
-    end
+    generate
+        for (i = 0; i < 127; i = i + 1)
+        begin: decoder7
+            assign out[i] = (in == i);
+        end
     endgenerate
+
 endmodule
 
 //decode func3
 module decoder_3_8 (
-    input  [2:0]    in,
-    output [7:0]    out
+    input wire [2:0]    in,
+    output wire [7:0]    out
 );
 
     genvar i;
-    gengrate for (i = 0; i < 7; i = i + 1) begin
-        assign out[i] = (in == i);
-    end
+    generate 
+        for (i = 0; i < 7; i = i + 1) 
+            begin: decoder3
+                assign out[i] = (in == i);
+            end
     endgenerate
 endmodule
 
 
 module fa (
-    input a,b,cin,
-    output s,c
+    input wire a,b,cin,
+    output wire s,c
 );
 
     assign s = ~a&~b&cin | ~a&b&~cin | a&~b&~cin | a&b&cin ;
@@ -50,8 +61,8 @@ endmodule
 
 
 module fb (
-  input a,b,cin,
-  output s,c
+  input wire a,b,cin,
+  output wire s,c
 );
   wire s1,t1,t2,t3;
   assign s1 = a^b;

@@ -2,9 +2,9 @@
 
 //TODO: don't needto consider the case of unsigned
 `include "defines.v"
-
+`timescale 1ns/1ns
 module alu (
-    input wire [13:0] alu_op, //TODO:  
+    input wire [`AluOpBus] alu_op, //TODO:  
 
     // input wire alu_signed;
     input wire [63:0] alu_src1,
@@ -76,11 +76,11 @@ module alu (
         .in_b   (adder_b        ),
         .in_c   (adder_cin      ),
         .out_s  (adder_result   ),
-        .put_c  (adder_cout     ),
-        .in32   (alu_32         )
+        .out_c  (adder_cout     ),
+        .alu_32   (alu_32         )
     );
     
-    // assign {adder_count, adder_result} = adder_a + adder_b + adder_cin;
+    // assign {adder_cout, adder_result} = adder_a + adder_b + adder_cin;
     assign add_sub_auipc_result = adder_result[63: 0];
 
 
@@ -98,8 +98,8 @@ module alu (
     assign slt_result[0] = (alu_src1[63] & ~alu_src1[63])
                         |  (~(alu_src1[63]^alu_src2[63] & adder_result[63]));
 
-    assign sltu_result[31: 1] = 63'b0;
-    assign sltu_result[0] = ~adder_count;
+    assign sltu_result[63: 1] = 63'b0;
+    assign sltu_result[0] = ~adder_cout;
     
 
     assign {alu_result, alu_over}   =   {({64{op_add | op_sub           }} & add_sub_auipc_result), 1'b1}

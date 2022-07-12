@@ -9,6 +9,7 @@
         "common.h": "c",
         "decode.h": "c",
         "typeinfo": "c",
-        "macro.h": "c"
+        "macro.h": "c",
+        "klib-macros.h": "c"
     }
 }

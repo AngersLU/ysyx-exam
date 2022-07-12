@@ -4,7 +4,7 @@
 # Execute this makefile from the object directory:
 #    make -f Vysyx_2022040010_top.mk
 
-default: Vysyx_2022040010_top
+default: /home/lff/ysyx-workbench/npc/ysyx_2022040010_top
 
 ### Constants...
 # Perl executable (from $PERL)
@@ -35,6 +35,8 @@ VM_PREFIX = Vysyx_2022040010_top
 VM_MODPREFIX = Vysyx_2022040010_top
 # User CFLAGS (from -CFLAGS on Verilator command line)
 VM_USER_CFLAGS = \
+	-I/home/lff/ysyx-workbench/npc/vsrc \
+	-DTOP_NAME="Vysyx_2022040010_top" \
 
 # User LDLIBS (from -LDFLAGS on Verilator command line)
 VM_USER_LDLIBS = \
@@ -61,7 +63,7 @@ main.o: /home/lff/ysyx-workbench/npc/csrc/main.cpp
 	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
 
 ### Link rules... (from --exe)
-Vysyx_2022040010_top: $(VK_USER_OBJS) $(VK_GLOBAL_OBJS) $(VM_PREFIX)__ALL.a $(VM_HIER_LIBS)
+/home/lff/ysyx-workbench/npc/ysyx_2022040010_top: $(VK_USER_OBJS) $(VK_GLOBAL_OBJS) $(VM_PREFIX)__ALL.a $(VM_HIER_LIBS)
 	$(LINK) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(LIBS) $(SC_LIBS) -o $@
 
 

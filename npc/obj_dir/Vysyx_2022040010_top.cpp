@@ -3,6 +3,7 @@
 
 #include "Vysyx_2022040010_top.h"
 #include "Vysyx_2022040010_top__Syms.h"
+#include "verilated_vcd_c.h"
 #include "verilated_dpi.h"
 
 //============================================================
@@ -12,6 +13,14 @@ Vysyx_2022040010_top::Vysyx_2022040010_top(VerilatedContext* _vcontextp__, const
     : vlSymsp{new Vysyx_2022040010_top__Syms(_vcontextp__, _vcname__, this)}
     , clk{vlSymsp->TOP.clk}
     , rst{vlSymsp->TOP.rst}
+    , isram_e{vlSymsp->TOP.isram_e}
+    , isram_addr{vlSymsp->TOP.isram_addr}
+    , isram_rdata{vlSymsp->TOP.isram_rdata}
+    , dsram_e{vlSymsp->TOP.dsram_e}
+    , dsram_we{vlSymsp->TOP.dsram_we}
+    , dsram_addr{vlSymsp->TOP.dsram_addr}
+    , dsram_wdata{vlSymsp->TOP.dsram_wdata}
+    , dsram_rdata{vlSymsp->TOP.dsram_rdata}
     , rootp{&(vlSymsp->TOP)}
 {
 }
@@ -46,6 +55,7 @@ static void _eval_initial_loop(Vysyx_2022040010_top__Syms* __restrict vlSymsp) {
     // Evaluate till stable
     int __VclockLoop = 0;
     QData __Vchange = 1;
+    vlSymsp->__Vm_activity = true;
     do {
         VL_DEBUG_IF(VL_DBG_MSGF("+ Initial loop\n"););
         Vysyx_2022040010_top___024root___eval_settle(&(vlSymsp->TOP));
@@ -57,7 +67,7 @@ static void _eval_initial_loop(Vysyx_2022040010_top__Syms* __restrict vlSymsp) {
             Verilated::debug(1);
             __Vchange = Vysyx_2022040010_top___024root___change_request(&(vlSymsp->TOP));
             Verilated::debug(__Vsaved_debug);
-            VL_FATAL_MT("/home/lff/ysyx-workbench/npc/vsrc/top.v", 5, "",
+            VL_FATAL_MT("/home/lff/ysyx-workbench/npc/vsrc/top.v", 31, "",
                 "Verilated model didn't DC converge\n"
                 "- See https://verilator.org/warn/DIDNOTCONVERGE");
         } else {
@@ -77,6 +87,7 @@ void Vysyx_2022040010_top::eval_step() {
     // Evaluate till stable
     int __VclockLoop = 0;
     QData __Vchange = 1;
+    vlSymsp->__Vm_activity = true;
     do {
         VL_DEBUG_IF(VL_DBG_MSGF("+ Clock loop\n"););
         Vysyx_2022040010_top___024root___eval(&(vlSymsp->TOP));
@@ -87,7 +98,7 @@ void Vysyx_2022040010_top::eval_step() {
             Verilated::debug(1);
             __Vchange = Vysyx_2022040010_top___024root___change_request(&(vlSymsp->TOP));
             Verilated::debug(__Vsaved_debug);
-            VL_FATAL_MT("/home/lff/ysyx-workbench/npc/vsrc/top.v", 5, "",
+            VL_FATAL_MT("/home/lff/ysyx-workbench/npc/vsrc/top.v", 31, "",
                 "Verilated model didn't converge\n"
                 "- See https://verilator.org/warn/DIDNOTCONVERGE");
         } else {
@@ -112,4 +123,31 @@ VerilatedContext* Vysyx_2022040010_top::contextp() const {
 
 const char* Vysyx_2022040010_top::name() const {
     return vlSymsp->name();
+}
+
+//============================================================
+// Trace configuration
+
+void Vysyx_2022040010_top___024root__traceInitTop(Vysyx_2022040010_top___024root* vlSelf, VerilatedVcd* tracep);
+
+static void traceInit(void* voidSelf, VerilatedVcd* tracep, uint32_t code) {
+    // Callback from tracep->open()
+    Vysyx_2022040010_top___024root* const __restrict vlSelf VL_ATTR_UNUSED = static_cast<Vysyx_2022040010_top___024root*>(voidSelf);
+    Vysyx_2022040010_top__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    if (!vlSymsp->_vm_contextp__->calcUnusedSigs()) {
+        VL_FATAL_MT(__FILE__, __LINE__, __FILE__,
+            "Turning on wave traces requires Verilated::traceEverOn(true) call before time 0.");
+    }
+    vlSymsp->__Vm_baseCode = code;
+    tracep->module(vlSymsp->name());
+    tracep->scopeEscape(' ');
+    Vysyx_2022040010_top___024root__traceInitTop(vlSelf, tracep);
+    tracep->scopeEscape('.');
+}
+
+void Vysyx_2022040010_top___024root__traceRegister(Vysyx_2022040010_top___024root* vlSelf, VerilatedVcd* tracep);
+
+void Vysyx_2022040010_top::trace(VerilatedVcdC* tfp, int, int) {
+    tfp->spTrace()->addInitCb(&traceInit, &(vlSymsp->TOP));
+    Vysyx_2022040010_top___024root__traceRegister(&(vlSymsp->TOP), tfp->spTrace());
 }

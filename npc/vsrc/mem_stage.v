@@ -17,7 +17,6 @@
 // endmodule
 
 
-`include "defines.v"
 
 // module ysyx_2022040010_mem (
 //     input wire rst,
@@ -88,7 +87,8 @@
     dsram need to update data before memu
     so, exu nee to output dsram(store instruction)
 */
-
+`include "defines.v"
+`timescale 1ns/1ns
 
 module ysyx_2022040010_mem (
     input wire clk,
@@ -103,11 +103,11 @@ module ysyx_2022040010_mem (
 
     output wire [`MEM_TO_WB_BUS] mem_to_wb_bus,
 
-    output wire [`BS_RF_BUS]     mem_to_rf_bus
+    output wire [`BP_TO_RF_BUS]     mem_to_rf_bus
 );
 
-    reg [`MEM_TO_WB_BUS] ex_to_mem_bus_r;
-    reg [63: 0] data_sram_rdata_r; 
+    reg [`EX_TO_MEM_BUS] ex_to_mem_bus_r;
+    reg [63: 0] dsram_rdata_r; 
 
 
     //TODO:not understand stall & flag
@@ -127,7 +127,7 @@ module ysyx_2022040010_mem (
     end
 
     wire [ 6: 0] load_op;
-    wire [31: 0] mem_pc;
+    wire [63: 0] mem_pc;
     wire dram_e;
     wire dram_we;
     wire [ 3: 0] sel_lsu_byte;
@@ -136,11 +136,12 @@ module ysyx_2022040010_mem (
     wire [ 4: 0] rf_waddr;
     wire [63: 0] ex_result;
 // 0 regfiel res from alu_res ; 1 form ld_res
-    wire sel_rf_res;
+    wire sel_rf_res;    
+    wire [63: 0] mem_pc;
 
     assign  {
         load_op,     //143:137
-        ex_pc,      //136:73 
+        mem_pc,      //136:73 
         dram_e,     //    72
         dram_we,    //    71 TODO:NOT USE
         sel_lsu_byte,//70:67
@@ -163,6 +164,8 @@ module ysyx_2022040010_mem (
     wire [15: 0] h_data;
     wire [31: 0] w_data;
     wire [63: 0] d_data;
+    wire [63: 0] mem_result;
+    wire [63: 0] rf_wdata;
 
     assign b_data = sel_lsu_byte[0] ? dsram_rdata[ 7: 0] : 8'b0;
     assign h_data = sel_lsu_byte[1] ? dsram_rdata[15: 0] : 16'b0;
@@ -173,7 +176,7 @@ module ysyx_2022040010_mem (
                         inst_lbu    ?   { {56'b0},b_data } :
                         inst_lh     ?   { {48{h_data[15]}}, h_data} :
                         inst_lhu    ?   { {48'b0},h_data } :
-                        inst_lw     ?   { {32{w_data[31]}, w_data}} :
+                        inst_lw     ?   { {32{w_data[31]}}, w_data} :
                         inst_lwu    ?   { {32'b0},w_data } :
                         inst_ld     ?   d_data  : 64'b0;
 

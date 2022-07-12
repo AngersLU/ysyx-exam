@@ -2,7 +2,7 @@
 
 
 `include "defines.v"
-
+`timescale 1ns/1ns
 //write back
 module ysyx_2022040010_regfile (
     input wire clk,
@@ -39,38 +39,38 @@ module ysyx_2022040010_regfile (
     //read1 handle
     always @(*) begin
         if (rst == `RstEnable) begin
-            rdata1 <= `ZeroWord;
+            rdata1 = `ZeroWord;
         end
         else if (raddr1 == `RegNumLog2'h0) begin
-            rdata1 <= `ZeroWord;
+            rdata1 = `ZeroWord;
         end
         else if ((raddr1 == waddr) && (we == `WriteEnable) && (re1 == `ReadEnable)) begin//correlation resolution with interal of 2 (RAW)
-            rdata1 <= wdata;
+            rdata1 = wdata;
         end
         else if (re1 == `ReadEnable) begin
-            rdata1 <= regs[raddr1];
+            rdata1 = regs[raddr1];
         end
         else begin
-            rdata1 <= `ZeroWord;
+            rdata1 = `ZeroWord;
         end
     end
 
     //read2 handle
     always @(*) begin
         if (rst == `RstEnable) begin
-            rdata2 <= `ZeroWord;
+            rdata2 = `ZeroWord;
         end
         else if (raddr2 == `RegNumLog2'h0) begin
-            rdata2 <= `ZeroWord;
+            rdata2 = `ZeroWord;
         end
         else if ((raddr2 == waddr) && (we == `WriteEnable) && (re2 == `ReadEnable)) begin
-            rdata2 <= wdata;
+            rdata2 = wdata;
         end
         else if (re2 == `ReadEnable) begin
-            rdata2 <= regs[raddr2];
+            rdata2 = regs[raddr2];
         end
         else begin
-            rdata2 <= `ZeroWord;
+            rdata2 = `ZeroWord;
         end
     end
 

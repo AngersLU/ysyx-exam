@@ -13,6 +13,9 @@
 
 class Vysyx_2022040010_top__Syms;
 class Vysyx_2022040010_top___024root;
+class VerilatedVcdC;
+class Vysyx_2022040010_top_VerilatedVcd;
+
 
 // This class is the main interface to the Verilated model
 class Vysyx_2022040010_top VL_NOT_FINAL {
@@ -27,6 +30,14 @@ class Vysyx_2022040010_top VL_NOT_FINAL {
     // propagate new values into/out from the Verilated model.
     VL_IN8(&clk,0,0);
     VL_IN8(&rst,0,0);
+    VL_OUT8(&isram_e,0,0);
+    VL_OUT64(&isram_addr,63,0);
+    VL_IN(&isram_rdata,31,0);
+    VL_OUT8(&dsram_e,0,0);
+    VL_OUT8(&dsram_we,0,0);
+    VL_OUT64(&dsram_addr,63,0);
+    VL_OUT64(&dsram_wdata,63,0);
+    VL_IN64(&dsram_rdata,63,0);
 
     // CELLS
     // Public to allow access to /* verilator public */ items.
@@ -59,6 +70,8 @@ class Vysyx_2022040010_top VL_NOT_FINAL {
     void eval_end_step() {}
     /// Simulation complete, run final blocks.  Application must call on completion.
     void final();
+    /// Trace signals in the model; called by application code
+    void trace(VerilatedVcdC* tfp, int levels, int options = 0);
     /// Return current simulation context for this model.
     /// Used to get to e.g. simulation time via contextp()->time()
     VerilatedContext* contextp() const;

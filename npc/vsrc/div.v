@@ -1,6 +1,7 @@
 
 // try quotient way
 `include "defines.v"
+`timescale 1ns/1ns
 module ysyx_2022040010_div(
     input wire rst,
     input wire clk,
@@ -50,18 +51,18 @@ module ysyx_2022040010_div(
 							state <= `DivOn;					
 							cnt <= 7'b000000;
 							if(signed_div_i == 1'b1 && opdata1_i[63] == 1'b1) begin			//被除数为负数
-								temp_op1 = ~opdata1_i + 1;
+								temp_op1 <= ~opdata1_i + 1;
 							end 
                             else begin
-								temp_op1 = opdata1_i;
+								temp_op1 <= opdata1_i;
 							end
 							if (signed_div_i == 1'b1 && opdata2_i[63] == 1'b1 ) begin			//除数为负数
-								temp_op2 = ~opdata2_i + 1;
+								temp_op2 <= ~opdata2_i + 1;
 							end 
                             else begin
-								temp_op2 = opdata2_i;
+								temp_op2 <= opdata2_i;
 							end
-							dividend <= {`ZeroWord, `ZeroWord};
+							dividend <= {1'b0, `ZeroWord, `ZeroWord};
 							dividend[64: 1] <= temp_op1;
 							divisor <= temp_op2;
 						end
@@ -73,7 +74,7 @@ module ysyx_2022040010_div(
 				end
 				
 				`DivByZero: begin			//divbyzero
-					dividend <= {`ZeroWord, `ZeroWord};
+					dividend <= {1'b0, `ZeroWord, `ZeroWord};
 					state <= `DivEnd;
 				end
 				
@@ -122,10 +123,10 @@ module ysyx_2022040010_div(
                              div_res_sel[0] ? result_o[127:64] :
                              64'b0;
     wire [63:0] div_res_32;
-    wire [63:0] div_res_o;
+	wire [63:0] div_result;
 
-    assign div_res_32 = div_signed ? {32{div_result_temp[31]}, div_result_temp[31:0]} : {32{1'b0}, div_result_temp[31:0]};
-    assign div_res_o = div_32 ? div_data1_32 : div_result_temp;
-    assign div_result = ready_o ? div_res_o ; 64'b0;
+    assign div_res_32 = signed_div_i ? {{32{div_result_temp[31]}}, div_result_temp[31:0]} : {{32{1'b0}}, div_result_temp[31:0]};
+    assign div_result = div_32 ? div_res_32 : div_result_temp;
+    assign div_res_o = ready_o ? div_result : 64'b0;
 
 endmodule
