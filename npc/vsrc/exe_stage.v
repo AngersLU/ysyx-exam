@@ -342,7 +342,7 @@ module ysyx_2022040010_ex (
     assign mul_inb_s = inst_mul |   inst_mulh   |   inst_mulw;
 
 //depend on  {mul_ina_s, mul_inb_s}　11　normal，　10　mulhsu , 00 mulhu
-    mul mul_ex(
+    ysyx_2022040010_mul mul_ex(
         .clk            (clk            ),
         .ret            (rst            ),
         .mul_32         (mul_32         ),  

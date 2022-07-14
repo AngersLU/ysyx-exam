@@ -10,6 +10,14 @@
         "decode.h": "c",
         "typeinfo": "c",
         "macro.h": "c",
-        "klib-macros.h": "c"
+        "klib-macros.h": "c",
+        "atomic": "c",
+        "*.tcc": "c",
+        "memory_resource": "c",
+        "type_traits": "c",
+        "ifetch.h": "c",
+        "cpu.h": "c",
+        "locale.h": "c",
+        "difftest.h": "c"
     }
 }

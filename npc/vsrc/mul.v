@@ -4,7 +4,7 @@
 `include "defines.v"
 `timescale 1ns/1ns
 // TODO: signed & unsigned not distinction yet
-module mul (
+module ysyx_2022040010_mul (
     input wire clk,
     input wire ret,
 
@@ -123,6 +123,7 @@ module mul (
 
     // level one
     wire signed [128:0] temp1_s [10:0];
+     /* verilator lint_off UNOPTFLAT */
     wire signed [128:0] carry [29:0];//11+
     ysyx_2022040010_cradder u0(.ina(mul_temp[32]), .inb(mul_temp[31]), .inc(mul_temp[30]), .s(temp1_s[0]), .c(carry[ 0]));
     genvar gv_l;
@@ -134,7 +135,7 @@ module mul (
     endgenerate
 
     //level two
-    wire signed [128:0] temp2_s [6:0];
+    wire signed [128:0] temp2_s [6:0];//
     ysyx_2022040010_cradder u11(.ina(temp1_s[0]), .inb(temp1_s[1]), .inc(temp1_s[2]), .s(temp2_s[0]), .c(carry[11]));  
     ysyx_2022040010_cradder u12(.ina(temp1_s[3]), .inb(temp1_s[4]), .inc(temp1_s[5]), .s(temp2_s[1]), .c(carry[12]));  
     ysyx_2022040010_cradder u13(.ina(temp1_s[6]), .inb(temp1_s[7]), .inc(temp1_s[8]), .s(temp2_s[2]), .c(carry[13]));  
@@ -181,10 +182,11 @@ endmodule
 
 //carry reserved adder
 module ysyx_2022040010_cradder (
-    input wire [128:0] ina,
-    input wire [128:0] inb,
-    input wire [128:0] inc,
+    input wire  [128:0] ina,
+    input wire  [128:0] inb,
+    input wire  [128:0] inc,
     output wire [128:0] s,
+    /* verilator lint_off UNOPTFLAT */
     output wire [128:0] c
 );
 
@@ -198,7 +200,7 @@ module ysyx_2022040010_cradder (
         end
     endgenerate
     
-    fa bit128 (.a(ina[128]), .b(inb[128]), .cin(inc[128]), .s(s[128]), .c(ov));
+    fb bit128 (.a(ina[128]), .b(inb[128]), .cin(inc[128]), .s(s[128]), .c(ov));
     
 endmodule
 

@@ -55,32 +55,32 @@ module ysyx_2022040010_top (
     // output wire [63: 0] debug_wb_rf_wdata 
 );
 
-    wire [63: 0] isram_addr_v, dsram_addr_v; 
+    // wire [63: 0] isram_addr_v, dsram_addr_v; 
 
     ysyx_2022040010_fsl fslu (
         .clk            (clk         ),
         .rst            (rst         ),
         .isram_e        (isram_e     ),
-        .isram_addr     (isram_addr_v),
+        .isram_addr     (isram_addr  ),
         .isram_rdata    (isram_rdata ),
-        .dsram_e        (dsram_e      ),
-        .dsram_we       (dsram_we     ),
-        .dsram_addr     (dsram_addr_v),
+        .dsram_e        (dsram_e     ),
+        .dsram_we       (dsram_we    ),
+        .dsram_addr     (dsram_addr  ),
         .dsram_wdata    (dsram_wdata ),
         .dsram_rdata    (dsram_rdata )
     );
 
-    ysyx_2022040010_mmu mmu_i    (
-        .addr_i (isram_addr_v   ),
-        .addr_o (isram_addr     )
-    );
+    // ysyx_2022040010_mmu mmu_i    (
+    //     .addr_i (isram_addr_v   ),
+    //     .addr_o (isram_addr     )
+    // );
 
 
 
-    ysyx_2022040010_mmu mmu_d   (
-        .addr_i (dsram_addr_v   ),
-        .addr_o (dsram_addr     )
-    );
+    // ysyx_2022040010_mmu mmu_d   (
+    //     .addr_i (dsram_addr_v   ),
+    //     .addr_o (dsram_addr     )
+    // );
 
 
 endmodule

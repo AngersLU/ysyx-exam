@@ -265,9 +265,7 @@ module ysyx_2022040010_fsl (
     // input wire [5:0] int,
 
     output wire isram_e,
-    // output wire isram_we,
     output wire [63: 0] isram_addr,
-    // output wire [63: 0] isram_wdata,
     input  wire [31: 0] isram_rdata,
 
     output wire dsram_e,
