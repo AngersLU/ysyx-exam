@@ -5,9 +5,9 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <generated/autoconf.h>
-#include <macro.h>
-
+#include "generated/autoconf.h"
+#include "macro.h"
+#include <Vysyx_2022040010_top.h>
 #ifdef CONFIG_TARGET_AM
 #include <klib.h>
 #else
@@ -19,6 +19,8 @@
 #define PMEM64 1
 #endif
 
+Vysyx_2022040010_top *top = new Vysyx_2022040010_top("top");
+
 typedef MUXDEF(CONFIG_ISA64, uint64_t, uint32_t) word_t;
 typedef MUXDEF(CONFIG_ISA64, int64_t, int32_t)  sword_t;
 #define FMT_WORD MUXDEF(CONFIG_ISA64, "0x%016lx", "0x%08x")
@@ -28,6 +30,6 @@ typedef MUXDEF(PMEM64, uint64_t, uint32_t) paddr_t;
 #define FMT_PADDR MUXDEF(PMEM64, "0x%016lx", "0x%08x")
 typedef uint16_t ioaddr_t;
 
-#include <debug.h>
+#include "debug.h"
 
 #endif

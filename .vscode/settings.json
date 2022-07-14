@@ -18,6 +18,11 @@
         "ifetch.h": "c",
         "cpu.h": "c",
         "locale.h": "c",
-        "difftest.h": "c"
+        "difftest.h": "c",
+        "reg.h": "c",
+        "isa-def.h": "c",
+        "utils.h": "c",
+        "difftest-def.h": "c",
+        "autoconf.h": "c"
     }
 }

@@ -1,7 +1,7 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include <common.h>
+#include "common.h"
 
 // ----------- state -----------
 
@@ -14,6 +14,9 @@ typedef struct {
 } NEMUState;
 
 extern NEMUState nemu_state;
+
+
+int is_exit_status_bad();
 
 // ----------- timer -----------
 
