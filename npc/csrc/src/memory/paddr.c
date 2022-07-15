@@ -1,7 +1,7 @@
-#include <memory/host.h>
-#include <memory/paddr.h>
-#include <device/mmio.h>
-#include <isa.h>
+#include "include/memory/host.h"
+#include "include/memory/paddr.h"
+#include "include/device/mmio.h"
+#include "include/isa.h"
 
 #if   defined(CONFIG_PMEM_MALLOC)
 static uint8_t *pmem = NULL;

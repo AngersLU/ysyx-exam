@@ -30,7 +30,7 @@ double sc_time_stamp() {
      return main_time;
 }
 
-extern Vysyx_2022040010_top
+extern Vysyx_2022040010_top* top;
 
 int main(int argc, char **argv) {
      init_monitor(argc, argv);

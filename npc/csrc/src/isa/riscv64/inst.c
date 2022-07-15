@@ -1,15 +1,18 @@
-#include "common.h"
-#include "local-include/reg.h"
-#include "macro.h"
-#include <cpu/cpu.h>
-#include <cpu/ifetch.h>
-#include <cpu/decode.h>
+#include "include/common.h"
+#include "src/isa/riscv64/local-include/reg.h"
+#include "include/macro.h"
+#include "include/cpu/cpu.h"
+#include "include/cpu/ifetch.h"
+#include "include/cpu/decode.h"
 /** #include <cstdint> */
 #include "verilated_dpi.h"
 
 uint64_t *cpu_gpr = NULL;
 
-extern "C" void set_gpr_ptr(const svOpenAarryHandle r) {
+extern Vysyx_2022040010_top* top;
+
+
+extern "C" void set_gpr_ptr(const svOpenArrayHandle r) {
   cpu_gpr = (uint64_t *)(((VerilatedDpiOpenVar*)r)->datap());
 }
 
@@ -38,16 +41,18 @@ int isa_exec_once(Decode *s) {
   s->isa.inst.val = inst_fetch(&s->snpc, 4);
   
   if ( top->isram_e ) {
-    top->isram_data = s->isa.inst.val;
+    top->isram_rdata = s->isa.inst.val;
   }
-  else top->isram_data = 0;
+  else top->isram_rdata = 0;
 
   if( top->dsram_e ) {
     if ( top->dsram_we ) {
-      paddr_write( top->dsram_addr, TODO:LEN, top->dsram_wdata );
+      //TODO:modify LEN
+      vaddr_write( top->dsram_addr, 8, top->dsram_wdata );
     }
     else {
-      top->dsram_rdata = paddr_read(top->dsram_addr, TODO:LEN);
+      //TODO:modify LEN
+      top->dsram_rdata = vaddr_read(top->dsram_addr, 8);
     }
   }
   
@@ -57,5 +62,5 @@ int isa_exec_once(Decode *s) {
   }
 
 
-  return decode_exec(s);
+  return 0;
 }

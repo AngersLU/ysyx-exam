@@ -23,6 +23,14 @@
         "isa-def.h": "c",
         "utils.h": "c",
         "difftest-def.h": "c",
-        "autoconf.h": "c"
+        "autoconf.h": "c",
+        "vaddr.h": "c",
+        "paddr.h": "c",
+        "host.h": "c",
+        "mmio.h": "c",
+        "ctype.h": "c",
+        "errno.h": "c",
+        "lkc.h": "c",
+        "expr.h": "c"
     }
 }

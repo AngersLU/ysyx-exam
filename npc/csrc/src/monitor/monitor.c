@@ -1,5 +1,5 @@
-#include <isa.h>
-#include <memory/paddr.h>
+#include "include/isa.h"
+#include "include/memory/paddr.h"
 
 void init_rand();
 void init_log(const char *log_file);
@@ -10,9 +10,6 @@ void init_disasm(const char *triple);
 
 static void welcome() {
   Log("Trace: %s", MUXDEF(CONFIG_TRACE, ASNI_FMT("ON", ASNI_FG_GREEN), ASNI_FMT("OFF", ASNI_FG_RED)));
-  IFDEF(CONFIG_TRACE, Log("If trace is enabled, a log file will be generated "
-        "to record the trace. This may lead to a large log file. "
-        "If it is not necessary, you can disable it in menuconfig"));
   Log("Build time: %s, %s", __TIME__, __DATE__);
   printf("Welcome to %s-NPC!\n", ASNI_FMT(str(__GUEST_ISA__), ASNI_FG_YELLOW ASNI_BG_RED));
   printf("For help, type \"help\"\n");
@@ -98,8 +95,8 @@ void init_monitor(int argc, char *argv[]) {
   /* Initialize memory. */
   init_mem();
 
-  /* Initialize devices. */
-  IFDEF(CONFIG_DEVICE, init_device());
+  // /* Initialize devices. */
+  // IFDEF(CONFIG_DEVICE, init_device());
 
   /* Perform ISA dependent initialization. */
   init_isa();
