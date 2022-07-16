@@ -4,7 +4,7 @@
 # Execute this makefile from the object directory:
 #    make -f Vysyx_2022040010_top.mk
 
-default: /home/lff/ysyx-workbench/npc/ysyx_2022040010_top
+default: /home/lff/ysyx-workbench/npc/build/ysyx_2022040010_top
 
 ### Constants...
 # Perl executable (from $PERL)
@@ -44,43 +44,20 @@ VM_USER_LDLIBS = \
 
 # User .cpp files (from .cpp's on Verilator command line)
 VM_USER_CLASSES = \
-	main \
 	cpu-exec \
-	dut \
-	hostcall \
 	init \
-	dut \
-	init \
+	init_isa \
 	inst \
-	logo \
-	reg \
-	intr \
-	mmu \
-	paddr \
-	vaddr \
-	monitor \
-	expr \
-	sdb \
-	watchpoint \
-	disasm \
 	log \
-	rand \
+	main \
+	monitor \
+	paddr \
 	state \
-	timer \
+	vaddr \
 
 # User .cpp directories (from .cpp's on Verilator command line)
 VM_USER_DIR = \
 	/home/lff/ysyx-workbench/npc/csrc \
-	/home/lff/ysyx-workbench/npc/csrc/src/cpu \
-	/home/lff/ysyx-workbench/npc/csrc/src/cpu/difftest \
-	/home/lff/ysyx-workbench/npc/csrc/src/engine/interpreter \
-	/home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64 \
-	/home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/difftest \
-	/home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/system \
-	/home/lff/ysyx-workbench/npc/csrc/src/memory \
-	/home/lff/ysyx-workbench/npc/csrc/src/monitor \
-	/home/lff/ysyx-workbench/npc/csrc/src/monitor/sdb \
-	/home/lff/ysyx-workbench/npc/csrc/src/utils \
 
 
 ### Default rules...
@@ -92,55 +69,29 @@ include $(VERILATOR_ROOT)/include/verilated.mk
 ### Executable rules... (from --exe)
 VPATH += $(VM_USER_DIR)
 
+cpu-exec.o: /home/lff/ysyx-workbench/npc/csrc/cpu-exec.c
+	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
+init.o: /home/lff/ysyx-workbench/npc/csrc/init.c
+	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
+init_isa.o: /home/lff/ysyx-workbench/npc/csrc/init_isa.c
+	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
+inst.o: /home/lff/ysyx-workbench/npc/csrc/inst.c
+	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
+log.o: /home/lff/ysyx-workbench/npc/csrc/log.c
+	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
 main.o: /home/lff/ysyx-workbench/npc/csrc/main.cpp
 	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-cpu-exec.o: /home/lff/ysyx-workbench/npc/csrc/src/cpu/cpu-exec.c
+monitor.o: /home/lff/ysyx-workbench/npc/csrc/monitor.c
 	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-dut.o: /home/lff/ysyx-workbench/npc/csrc/src/cpu/difftest/dut.c
+paddr.o: /home/lff/ysyx-workbench/npc/csrc/paddr.c
 	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-hostcall.o: /home/lff/ysyx-workbench/npc/csrc/src/engine/interpreter/hostcall.c
+state.o: /home/lff/ysyx-workbench/npc/csrc/state.c
 	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-init.o: /home/lff/ysyx-workbench/npc/csrc/src/engine/interpreter/init.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-dut.o: /home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/difftest/dut.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-init.o: /home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/init.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-inst.o: /home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/inst.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-logo.o: /home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/logo.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-reg.o: /home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/reg.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-intr.o: /home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/system/intr.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-mmu.o: /home/lff/ysyx-workbench/npc/csrc/src/isa/riscv64/system/mmu.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-paddr.o: /home/lff/ysyx-workbench/npc/csrc/src/memory/paddr.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-vaddr.o: /home/lff/ysyx-workbench/npc/csrc/src/memory/vaddr.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-monitor.o: /home/lff/ysyx-workbench/npc/csrc/src/monitor/monitor.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-expr.o: /home/lff/ysyx-workbench/npc/csrc/src/monitor/sdb/expr.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-sdb.o: /home/lff/ysyx-workbench/npc/csrc/src/monitor/sdb/sdb.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-watchpoint.o: /home/lff/ysyx-workbench/npc/csrc/src/monitor/sdb/watchpoint.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-disasm.o: /home/lff/ysyx-workbench/npc/csrc/src/utils/disasm.cc
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-log.o: /home/lff/ysyx-workbench/npc/csrc/src/utils/log.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-rand.o: /home/lff/ysyx-workbench/npc/csrc/src/utils/rand.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-state.o: /home/lff/ysyx-workbench/npc/csrc/src/utils/state.c
-	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
-timer.o: /home/lff/ysyx-workbench/npc/csrc/src/utils/timer.c
+vaddr.o: /home/lff/ysyx-workbench/npc/csrc/vaddr.c
 	$(OBJCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OPT_FAST) -c -o $@ $<
 
 ### Link rules... (from --exe)
-/home/lff/ysyx-workbench/npc/ysyx_2022040010_top: $(VK_USER_OBJS) $(VK_GLOBAL_OBJS) $(VM_PREFIX)__ALL.a $(VM_HIER_LIBS)
+/home/lff/ysyx-workbench/npc/build/ysyx_2022040010_top: $(VK_USER_OBJS) $(VK_GLOBAL_OBJS) $(VM_PREFIX)__ALL.a $(VM_HIER_LIBS)
 	$(LINK) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(LIBS) $(SC_LIBS) -o $@
 
 

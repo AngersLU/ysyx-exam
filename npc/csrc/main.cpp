@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "include/common.h"
-#include "include/cpu/cpu.h"
+#include "include/cpu.h"
 #include "include/utils.h"
 #include <Vysyx_2022040010_top.h>
 //#include "verilated_vcd_c.h"
@@ -30,7 +30,9 @@ double sc_time_stamp() {
      return main_time;
 }
 
-extern Vysyx_2022040010_top* top;
+
+Vysyx_2022040010_top *top = new Vysyx_2022040010_top("top");
+
 
 int main(int argc, char **argv) {
      init_monitor(argc, argv);

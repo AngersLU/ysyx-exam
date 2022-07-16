@@ -1,6 +1,6 @@
 CXXSRC = $(NPC_HOME)/csrc/src/utils/disasm.cc
 LLVM_CXXFLAGS += $(shell llvm-config-11 --cxxflags) -fPIE
-LLVM_LIBS = $(shell llvm-config-11 --libs)
+LLVM_LIBS += $(shell llvm-config-11 --libs)
 
 TOPNAME = ysyx_2022040010_top
 
@@ -10,10 +10,9 @@ NPC_VSRC_DIR ?= $(NPC_HOME)/vsrc
 
 BUILD_DIR = $(NPC_HOME)/build
 OBJ_DIR = $(NPC_HOME)/obj_dir
-BIN = $(NPC_HOME)/$(TOPNAME)
+BIN = $(BUILD_DIR)/$(TOPNAME)
 
 default: $(BIN)
-
 $(shell mkdir -p $(BUILD_DIR))
 
 VERILATOR = verilator
@@ -39,7 +38,9 @@ verilog:
 
 $(BIN): $(VSRCS) $(CSRCS) 
 	@rm -rf $(OBJ_DIR)
-	@$(VERILATOR) $(VERILATOR_CFLAGS)  --top-module $(TOPNAME) $(CSRCS) $(VSRCS) $(addprefix -CFLAGS , $(CFLAGS)) --Mdir $(OBJ_DIR) -I$(abspath ./vsrc) --exe -o $(abspath $(BIN))
+	@$(VERILATOR) $(VERILATOR_CFLAGS)  \
+	--top-module $(TOPNAME) $(CSRCS) $(VSRCS) $(addprefix -CFLAGS , $(CFLAGS)) \ 
+	--Mdir $(OBJ_DIR) -I$(abspath ./vsrc) --exe -o $(abspath $(BIN))
 
 $(IMAGE).bin: image
 
