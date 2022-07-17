@@ -8,9 +8,9 @@ NPC_VSRC_DIR = ./vsrc
 OBJ_DIR = ./obj_dir/
 
 VERILATOR = verilator
-VERILATOR_CFLAGS += -MMD --cc --exe --build -Wno-fatal
+VERILATOR_CFLAGS += -MMD --cc --trace --exe --build -Wno-fatal
 
-VSRCS = $(shell find $(abspath ./vsrc) -name "*.v")
+VSRC = $(shell find $(abspath ./vsrc) -name "*.v")
 CSRCS = $(shell find $(abspath ./csrc) -name "*.cpp")
 
 sim:

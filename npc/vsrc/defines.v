@@ -4,7 +4,7 @@
 `define ZeroWord        64'h0000_0000_0000_0000  //64bits zero
 `define ZeroReg         64'h0000_0000_0000_0000  //64bits zero
 `define ZeroPc          64'h0000_0000_0000_0000  //64bits zero
-`define InitPc          64'h0000_0000_8000_0000  //M_base
+`define PC_MBASE        64'h0000_0000_8000_0000  //M_base
 `define WriteEnable     1'b1        //enable write
 `define WriteDisable    1'b0        //ban write
 `define ReadEnable      1'b1        //enable read
@@ -121,7 +121,7 @@
 `define DivStop             1'b0
 
 
-`define NoStop 1'b0
-`define Stop 1'b1
-
+`define NoStop  1'b0
+`define Stop    1'b1
+// `define PC_MBASE    64'h0000_0000_8000_0000
 

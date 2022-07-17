@@ -5,26 +5,29 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "autoconf.h"
-#include "macro.h"
-#include "isa.h"
+#include <generated/autoconf.h>
+#include <macro.h>
 
-#include <Vysyx_2022040010_top.h>
-
+#ifdef CONFIG_TARGET_AM
+#include <klib.h>
+#else
 #include <assert.h>
 #include <stdlib.h>
+#endif
 
+#if CONFIG_MBASE + CONFIG_MSIZE > 0x100000000ul
+#define PMEM64 1
+#endif
 
-extern Vysyx_2022040010_top* top;
 typedef uint64_t word_t;
 typedef int64_t sword_t;
 #define FMT_WORD "0x%016lx"
 
 typedef word_t vaddr_t;
 typedef uint64_t paddr_t;
-#define FMT_PADDR  "0x%016lx"
+#define FMT_PADDR "0x%016lx"
 typedef uint16_t ioaddr_t;
 
-#include "debug.h"
+#include <debug.h>
 
 #endif

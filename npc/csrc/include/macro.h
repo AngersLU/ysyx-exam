@@ -14,7 +14,7 @@
 #define ARRLEN(arr) (int)(sizeof(arr) / sizeof(arr[0]))
 
 // macro concatenation
-#define concat_temp(x, y) x ## y
+#define concat_temp(x, y) x##y
 #define concat(x, y) concat_temp(x, y)
 #define concat3(x, y, z) concat(concat(x, y), z)
 #define concat4(x, y, z, w) concat3(concat(x, y), z, w)
@@ -68,10 +68,6 @@
 // NOTE2: each element in the container can be a tuple
 #define MAP(c, f) c(f)
 
-#define BITMASK(bits) ((1ull << (bits)) - 1) //shift left 2 bits
-#define BITS(x, hi, lo) (((x) >> (lo)) & BITMASK((hi) - (lo) + 1)) // similar to x[hi:lo] in verilog, fill 0 with other bits
-#define SEXT(x, len) ({ struct { int64_t n : len; } __x = { .n = x }; (int64_t)__x.n; })
-
 #define ROUNDUP(a, sz)   ((((uintptr_t)a) + (sz) - 1) & ~((sz) - 1))
 #define ROUNDDOWN(a, sz) ((((uintptr_t)a)) & ~((sz) - 1))
 
@@ -82,14 +78,14 @@
 #define unlikely(cond) __builtin_expect(cond, 0)
 #endif
 
-// // for AM IOE
-// #define io_read(reg) \
-//   ({ reg##_T __io_param; \
-//     ioe_read(reg, &__io_param); \
-//     __io_param; })
+// for AM IOE
+#define io_read(reg) \
+  ({ reg##_T __io_param; \
+    ioe_read(reg, &__io_param); \
+    __io_param; })
 
-// #define io_write(reg, ...) \
-//   ({ reg##_T __io_param = (reg##_T) { __VA_ARGS__ }; \
-//     ioe_write(reg, &__io_param); })
+#define io_write(reg, ...) \
+  ({ reg##_T __io_param = (reg##_T) { __VA_ARGS__ }; \
+    ioe_write(reg, &__io_param); })
 
 #endif

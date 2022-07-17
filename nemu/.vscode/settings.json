@@ -3,6 +3,8 @@
         "utils.h": "c",
         "reg.h": "c",
         "ifetch.h": "c",
-        "decode.h": "c"
+        "decode.h": "c",
+        "cstdlib": "c",
+        "difftest-def.h": "c"
     }
 }
