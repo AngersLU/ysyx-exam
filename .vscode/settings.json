@@ -31,6 +31,7 @@
         "ctype.h": "c",
         "errno.h": "c",
         "lkc.h": "c",
-        "expr.h": "c"
+        "expr.h": "c",
+        "stdint.h": "c"
     }
 }

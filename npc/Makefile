@@ -1,62 +1,54 @@
-CXXSRC = $(NPC_HOME)/csrc/src/utils/disasm.cc
-LLVM_CXXFLAGS += $(shell llvm-config-11 --cxxflags) -fPIE
-LLVM_LIBS += $(shell llvm-config-11 --libs)
+include /usr/local/share/verilator/include/verilated.mk
+VSRCS = $(shell find $(abspath $(NPC_HOME)/vsrc) -name "*.v")
+CSRCS = $(shell find $(abspath $(NPC_HOME)/csrc) -name "*.cpp") 
+HSRCS = $(shell find $(abspath $(NPC_HOME)/csrc) -name "*.h")
 
-
-FILELIST_MK = $(shell find .src -name "filelist.mk")
-include $(FILELIST_MK)
-
-
-
-TOPNAME = top
-
-NPC_CSRC_DIR ?= $(NPC_HOME)/csrc
-C_INC += $(NPC_HOME)/csrc/include
-NPC_VSRC_DIR ?= $(NPC_HOME)/vsrc
-#NPC_MAIN_DIR ?= $(NPC_HOME)/csrc 
+TOP_NAME = top
+VDIR = $(NPC_HOME)/vsrc
+CDIR = $(NPC_HOME)/csrc
+IMG ?=
+AGRS ?=
 
 BUILD_DIR = $(NPC_HOME)/build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
-BIN = $(BUILD_DIR)/$(TOPNAME)
+
+BIN = $(BUILD_DIR)/$(TOP_NAME)
 
 default: $(BIN)
+
 $(shell mkdir -p $(BUILD_DIR))
 
-VERILATOR = verilator
-VERILATOR_CFLAGS += -MMD --cc \
-	--build -O3 --x-assign fast --x-initial fast --noassert	\
-	-LDFLAGS "-lreadline -ldl -pie $(LLVM_CXXFLAGS) $(LLVM_LIBS) -lSDL2"
+#rules for verilator
+VERILATOR_FLAGS += -MMD --build -cc --exe --trace  \
+	-O3 --x-assign fast --x-initial fast --noassert \
+	--timescale "1ns/1ns"  
 
-LDFLAGS += -lSDL2 -lSDL2_image -ldl 
+INC_PATH = $(NPC_HOME)/vsrc
+INCFLAGS = $(addprefix -I , $(INC_PATH))
+VCFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\""
+#LDFLAGS +=-lSLD2 -lSDL2_image -ldl
 
-VSRCS = $(shell find $(abspath $(NPC_VSRC_DIR)) -name "*.v")
-CSRCS = $(shell find $(abspath $(NPC_CSRC_DIR)) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-
-
-# rulers for verilator
-INCFLAGS = $(addprefix -I, $(NPC_CSRC_DIR))
-INCFLAGS += $(addprefix -I, $(C_INC))
-CFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
-
-
-
-verilog:
-	$(call git_commit, "generate verilog")
-	mkdir -p $(BUILD_DIR)
-
-$(BIN): $(VSRCS) $(CSRCS) 
+$(BIN): $(VSRCS) $(CSRCS) $(HSRCS)
 	@rm -rf $(OBJ_DIR)
-	@$(VERILATOR) $(VERILATOR_CFLAGS)  \
-	--top-module $(TOPNAME) $(CSRCS) $(VSRCS) $(addprefix -CFLAGS , $(CFLAGS)) \
-	--Mdir $(BUILD_DIR) -I$(abspath ./vsrc) --exe -o $(abspath $(BIN))
-	#./obj_dir/Vtop
-	#gtkwave wave.vcd
-$(IMAGE).bin: image
+	verilator $(VERILATOR_FLAGS) \
+		--top-module $(TOP_NAME) $(VSRCS) $(CSRCS) \
+		$(addprefix -CFLAGS , $(VCFLAGS)) \
+		--Mdir $(OBJ_DIR) -I$(VDIR) --exe -o $(abspath $(BIN))
+	
 
-run: $(BIN)
+run: $(BIN) $(IMAGE) $(ARGS)
 	@$^
+	./build/obj_dir/Vtop
+	$(call git_commit, "npc simlation")
 
-.PHONY: test verilog help compile bsp reformat checkformat clean
+gtk:
+	@gtkwave $(OBJ_DIR)/Vtop.vcd
+
+git:
+	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
+
+clean:
+	rm -rf $(OBJ_DIR)
+
+.PHONY:clean
 include ../Makefile
-
-

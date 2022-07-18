@@ -22,6 +22,7 @@ module top (
     // dsram_we == 4'b0100  dsram_wdata[31: 0]
     // dsram_we == 4'b1000  dsram_wdata[64: 0]
     output wire [63: 0] dsram_wdata,
+    output wire [ 3: 0] dsram_sel,
     input wire  [63: 0] dsram_rdata
 
     // output wire [63: 0] debug_wb_pc,
@@ -42,6 +43,7 @@ module top (
         .dsram_we       (dsram_we    ),
         .dsram_addr     (dsram_addr  ),
         .dsram_wdata    (dsram_wdata ),
+		.dsram_sel		(dsram_sel	 ),
         .dsram_rdata    (dsram_rdata )
     );
 

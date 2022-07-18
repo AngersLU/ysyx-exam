@@ -25,4 +25,4 @@ image: $(IMAGE).elf
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: image
-	make -C $(NPC_HOME) run ARGS="$(NPCFLAGS)" IMG=$(IMAGE).bin
+	make -C $(NPC_HOME) run ARGS="$(NPCFLAGS)" IMAGE=$(IMAGE).bin

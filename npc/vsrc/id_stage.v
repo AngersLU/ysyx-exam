@@ -70,7 +70,7 @@ module ysyx_2022040010_id (
     assign inst_i = ce ? flag ? buf_inst : isram_rdata : 32'b0;
 
 
-//　TODO:后面通过旁路来进行代替
+//　TODO:replace of bypass
     assign {
         ex_rf_we,
         ex_rf_waddr,

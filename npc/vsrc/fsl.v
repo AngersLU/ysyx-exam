@@ -16,6 +16,7 @@ module ysyx_2022040010_fsl (
     output wire dsram_we,
     output wire [63: 0] dsram_addr,
     output wire [63: 0] dsram_wdata,
+    output wire [ 3: 0] dsram_sel,
     input  wire [63: 0] dsram_rdata
 
 );
@@ -77,7 +78,8 @@ module ysyx_2022040010_fsl (
         .dsram_e            (dsram_e            ),
         .dsram_we           (dsram_we           ),
         .dsram_addr         (dsram_addr         ),
-        .dsram_wdata        (dsram_wdata        )   
+        .dsram_wdata        (dsram_wdata        ),
+        .dsram_sel          (dsram_sel          ) 
     );
 
     ysyx_2022040010_mem memu    (
@@ -99,3 +101,4 @@ module ysyx_2022040010_fsl (
 
 
 endmodule
+
