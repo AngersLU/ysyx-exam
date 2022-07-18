@@ -8,7 +8,7 @@ using namespace std;
 bool check_parentheses(int p, int q);
 int dominant_operator(int p , int q);
 uint64_t expr(char *e, bool *success) ;
-uint64_t isa_reg_str2val(const char *s, bool *success);
+//uint64_t isa_reg_str2val(const char *s, bool *success);
 //static Token tokens[32] __attribute__((used));
 
 enum {

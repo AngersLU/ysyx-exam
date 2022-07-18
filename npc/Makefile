@@ -19,14 +19,14 @@ default: $(BIN)
 $(shell mkdir -p $(BUILD_DIR))
 
 #rules for verilator
-VERILATOR_FLAGS += -MMD --build -cc --exe --trace  \
+VERILATOR_FLAGS += -MMD --build -cc --exe \
 	-O3 --x-assign fast --x-initial fast --noassert \
 	--timescale "1ns/1ns"  
 
 INC_PATH = $(NPC_HOME)/vsrc
 INCFLAGS = $(addprefix -I , $(INC_PATH))
 VCFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\""
-#LDFLAGS +=-lSLD2 -lSDL2_image -ldl
+LDFLAGS +=-lSLD2 -lSDL2_image -ldl
 
 $(BIN): $(VSRCS) $(CSRCS) $(HSRCS)
 	@rm -rf $(OBJ_DIR)

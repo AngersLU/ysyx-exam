@@ -1,6 +1,6 @@
 // #include <stdlib.h>
 // #include <assert.h>
-// #include "Vrvcpu.h"
+//#include "Vrvcpu.h"
 // #include <verilated.h>          
 // #include <verilated_vcd_c.h>  
 // #include <Vrvcpu__Dpi.h>
@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "Vtop.h"
+#include <dlfcn.h>
 #include <verilated.h>          
 #include <verilated_vcd_c.h>  
 #include <Vtop__Dpi.h>
@@ -23,7 +24,7 @@ using namespace std;
 // #define AXI_DIFFTEST
 
 Vtop* rvcpu ;
-VerilatedVcdC* tfp;
+// VerilatedVcdC* tfp;w
 VerilatedContext* contextp;
 
 uint64_t start_pc;
@@ -121,10 +122,10 @@ int main(int argc , char** argv , char** env) {
   contextp->commandArgs(argc, argv) ;
 
   rvcpu = new Vtop(contextp);
-  Verilated::traceEverOn(true) ; //out vcd need
-  tfp = new VerilatedVcdC ; // out vcd need
-  rvcpu->trace(tfp,0) ;
-  tfp->open("build/obj_dir/rvcpu.vcd") ; // open vcd
+  // Verilated::traceEverOn(true) ; //out vcd need
+  // tfp = new VerilatedVcdC ; // out vcd need
+  // rvcpu->trace(tfp,0) ;
+  // tfp->open("build/obj_dir/rvcpu.vcd") ; // open vcd
 
 
   init_monitor(argc, argv);
@@ -135,11 +136,10 @@ int main(int argc , char** argv , char** env) {
   return is_exit_status_bad();
 }
 
-
 //close npc function
 
-extern int close_npc(){
-  tfp->close() ;
+extern int close_npc() {
+  // tfp->close() ;
   delete rvcpu ;
   delete contextp ;
   exit(0) ;
@@ -201,7 +201,7 @@ extern void isa_exec_once(int x){
     else if( (main_time % 10) == 0 ) rvcpu->clk = 0; loop = 0;
 
     rvcpu->eval();
-    tfp->dump(main_time);
+    // tfp->dump(main_time);
     main_time++;
     //loop_end
   }
