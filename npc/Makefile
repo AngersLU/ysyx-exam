@@ -19,7 +19,7 @@ default: $(BIN)
 $(shell mkdir -p $(BUILD_DIR))
 
 #rules for verilator
-VERILATOR_FLAGS += -MMD --build -cc --exe \
+VERILATOR_FLAGS += -MMD --build -cc --exe --trace \
 	-O3 --x-assign fast --x-initial fast --noassert \
 	--timescale "1ns/1ns"  
 

@@ -42,7 +42,6 @@ module ysyx_2022040010_div(
 			ready_o <= `DivResultNotReady;
 		end else begin
 			case(state)
-
 				`DivFree: begin			//div free
 					if (start_i == `DivStart && annul_i == 1'b0) begin
 						if(opdata2_i == `ZeroWord) begin			

@@ -16,10 +16,9 @@
 `define AluSelBus       2 : 0         //id_state output alusel_o bus width
 
 `define IF_TO_ID_BUS    64 :0
-// `define ID_TO_EX_BUS    360:0
 `define ID_TO_EX_BUS    290:0
 `define BR_TO_IF_BUS    64 :0
-`define EX_TO_MEM_BUS   147:0
+`define EX_TO_MEM_BUS   211:0
 `define MEM_TO_WB_BUS   133:0
 `define SP_BUS          1 : 0
 
@@ -28,7 +27,7 @@
 `define IF_TO_ID_WD     65
 `define ID_TO_EX_WD     291
 `define BR_TO_IF_WD     65   
-`define EX_TO_MEM_WD    148
+`define EX_TO_MEM_WD    212
 `define MEM_TO_WB_WD    134
 `define SP_WD           2
 
@@ -36,7 +35,7 @@
 //bypass
 `define BP_TO_RF_BUS    69: 0
 
-`define BP_TO_RF_WD     70
+`define BP_TO_RF_WD     70     
 
 
 

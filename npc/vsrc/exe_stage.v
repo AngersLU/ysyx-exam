@@ -6,8 +6,10 @@ module ysyx_2022040010_ex (
     input wire clk,
     input wire rst,
 
-    // input wire [`StallBus-1:0] stall,
-    // output wire stallreq_for_ex,    //TODO:?
+    input wire [`StallBus] stall,
+    output wire stallreq_for_ex,  
+    output wire stallreq_for_load,
+    output wire stallreq_for_bru,  
 
     input wire [`ID_TO_EX_BUS] id_to_ex_bus,
 
@@ -22,32 +24,31 @@ module ysyx_2022040010_ex (
     output wire dsram_we,
     output wire [63: 0] dsram_addr,
     output wire [63: 0] dsram_wdata,
-    output wire [ 3: 0] dsram_sel
+    output wire [ 7: 0] dsram_sel,
+    
+    input wire [63: 0] dsram_rdata
 );
 
     reg [`ID_TO_EX_BUS] id_to_ex_bus_r;
 
-    // always @ (posedge clk) begin
-    //     if (rst) begin
-    //         id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
-    //     end
-    //     else if (stall[2] == `Stop && stall[3] == `NoStop) begin
-    //         id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
-    //     end
-    //     else if (stall[2] == `NoStop) begin
-    //         id_to_ex_bus_r <= id_to_ex_bus;
-    //     end
-    // end
+    wire stall_temp;
+    assign stall_temp = stall[1] | stall[0];
+    reg flag;
 
-    always @( posedge clk) begin
-        if( rst ) begin
+    always @(posedge clk) begin
+        if (rst) begin
             id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
+            flag <= 1'b0;
         end
-        else begin
+        else if (stall_temp == 1'b1 && flag == 1'b0) begin
             id_to_ex_bus_r <= id_to_ex_bus;
+            flag <= 1'b1;
+        end
+        else if (stall[5] == 1'b0) begin
+            id_to_ex_bus_r <= id_to_ex_bus;
+            flag <= 1'b0; 
         end
     end
-    
 
     wire [`SP_BUS] sp_bus;
     wire lsu_8, lsu_16, lsu_32, lsu_64, mul_32, div_32, alu_32;
@@ -68,6 +69,7 @@ module ysyx_2022040010_ex (
     wire sel_rf_res;
     wire [63: 0] rf_rdata1;
     wire [63: 0] rf_rdata2;
+    wire [`ID_TO_EX_BUS] id_to_ex_bus_temp = flag ? `ID_TO_EX_WD'b0 : id_to_ex_bus_r;
 
     assign  {
         sp_bus,         //291
@@ -188,6 +190,19 @@ module ysyx_2022040010_ex (
     wire [ 3: 0]  sel_lsu_byte;
     wire [ 6: 0]  load_op;
 
+    reg [4:0] ex_rd_last;
+
+    assign stallreq_for_load = ((ex_rd_last == inst_i[19:15]) | (ex_rd_last == inst_i[24:20]) & dram_e & ~dram_we) ? 1'b1 : 1'b0;
+
+    always @(*) begin
+        if (rst) begin
+            ex_rd_last = 5'b0;    
+        end
+        else begin
+            ex_rd_last = rf_waddr;
+        end
+    end
+
     assign {
          inst_sb, inst_sh,  inst_sw, inst_sd
     } = mem_op[ 3: 0];
@@ -214,7 +229,10 @@ module ysyx_2022040010_ex (
                             inst_sh ? { {48{1'b0}}, rf_rdata2[15: 0]} :
                             inst_sw ? { {32{1'b0}}, rf_rdata2[31: 0]} :
                             rf_rdata2;
-    assign dsram_sel    = sel_lsu_byte;
+    assign dsram_sel    =   lsu_64  ? 8'b1111_1111 :
+                            lsu_32  ? 8'b0000_1111 :
+                            lsu_16  ? 8'b0000_0011 : 
+                            lsu_8   ? 8'b0000_0001 : 8'b0;
 // mul & div
     // mulw
     // mul (signed)rf_rdata1[31:0] * (signed)rf_rdata2[31:0] = result[31:0]  
@@ -278,8 +296,12 @@ module ysyx_2022040010_ex (
     }   =   rem_op;
 
     wire div_over;
-    // reg stallreq_for_div;
-    // assign stallreq_for_ex = stallreq_for_div;
+    reg stallreq_for_div;
+    wire stallreq_for_mul ;
+    assign stallreq_for_mul = inst_mul  | inst_mulh | inst_mulhsu | 
+                            | inst_mulhu| inst_mulw;
+    // assign stallreq_for_ex = stallreq_for_div | (stallreq_for_mul & ~mul_over);
+    assign stallreq_for_ex = stallreq_for_div;
 
     reg [63: 0] div_data1;
     reg [63: 0] div_data2;
@@ -312,7 +334,6 @@ module ysyx_2022040010_ex (
         .start_i        (div_start  ),
         .annul_i        (1'b0       ),
         .div_res_sel    (div_res_sel),
-
         .div_res_o      (div_result ),
         .ready_o        (div_over   )
     );
@@ -326,14 +347,14 @@ module ysyx_2022040010_ex (
 
     always @ ( *) begin
         if ( rst) begin
-            // stallreq_for_div = `NoStop;
+            stallreq_for_div = `NoStop;
             div_data1 = `ZeroWord;
             div_data2 = `ZeroWord;
             div_start = `DivStop;
             div_signed = 1'b0;
         end
         else begin
-            // stallreq_for_div = `NoStop;
+            stallreq_for_div = `NoStop;
             div_data1 = `ZeroWord;
             div_data2 = `ZeroWord;
             div_start = `DivStop;
@@ -345,21 +366,21 @@ module ysyx_2022040010_ex (
                         div_data2 = rf_rdata2;
                         div_start = `DivStart;
                         div_signed = 1'b1;
-                        // stallreq_for_div = `Stop;  // stop stallreq
+                        stallreq_for_div = `Stop;  // stop stallreq
                     end
                     else if ( div_over == `DivResultReady ) begin
                         div_data1 = rf_rdata1;
                         div_data2 = rf_rdata2;
                         div_start = `DivStop;
                         div_signed = 1'b1;
-                        // stallreq_for_div = `NoStop;
+                        stallreq_for_div = `NoStop;
                     end
                     else begin
                         div_data1 = `ZeroWord;
                         div_data2 = `ZeroWord;
                         div_start = `DivStop;
                         div_signed = 1'b0;
-                        // stallreq_for_div = `NoStop;
+                        stallreq_for_div = `NoStop;
                     end
                 end
                 2'b01: begin
@@ -368,14 +389,14 @@ module ysyx_2022040010_ex (
                         div_data2 = rf_rdata2;
                         div_start = `DivStart;
                         div_signed = 1'b0;
-                        // stallreq_for_div = `Stop;  // stop stallreq
+                        stallreq_for_div = `Stop;  // stop stallreq
                     end
                     else if ( div_over == `DivResultReady ) begin
                         div_data1 = rf_rdata1;
                         div_data2 = rf_rdata2;
                         div_start = `DivStop;
                         div_signed = 1'b0;
-                        // stallreq_for_div = `NoStop;
+                        stallreq_for_div = `NoStop;
                     end
                     else begin
                         div_data1 = `ZeroWord;
@@ -440,6 +461,7 @@ module ysyx_2022040010_ex (
                     | inst_bltu& rs1_ult_rs2
                     | inst_bgeu& rs1_uge_rs2;
 
+
     assign bru_addr = inst_beq  ? {pc_plus_4 + imm_B_sign_extend  }
                     : inst_bne  ? {pc_plus_4 + imm_B_sign_extend  }
                     : inst_blt  ? {pc_plus_4 + imm_B_sign_extend  }
@@ -454,18 +476,14 @@ module ysyx_2022040010_ex (
 
 //sp_handle
     import "DPI-C" function void ebreak;
-
     always @ (*) begin
         if(alu_op[0] == 1 & sp_bus[0] == 1) begin
-            // ebreak();
+            ebreak();
         end
         else if ( alu_op[0] == 1 & sp_bus[1] == 1) begin
             // ecall();//TODO: no finished yet
         end
     end
-
-
-
 
 //out
     assign ex_result =  alu_over ? alu_result :
@@ -473,8 +491,9 @@ module ysyx_2022040010_ex (
                         div_over ? div_result :
                         64'b0;                //this instruction is a branch 
 
-// store instruction over    143: 0
+// store instruction over    211:0
     assign ex_to_mem_bus = {
+        dsram_rdata, 
         load_op,    //143:137 148
         ex_pc,      //136:73  141
         dram_e,     //    72  77
@@ -492,7 +511,6 @@ module ysyx_2022040010_ex (
         rf_waddr,   // 68:64
         ex_result   // 63: 0
     };
-
 
 
 endmodule

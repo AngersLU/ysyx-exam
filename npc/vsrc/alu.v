@@ -56,9 +56,6 @@ module alu (
     assign xor_result = alu_src1 ^ alu_src2;
     assign nop_result = alu_src2;
 
-
-
-
 //add
     wire [63: 0] adder_a;
     wire [63: 0] adder_b;
@@ -82,9 +79,6 @@ module alu (
     
     // assign {adder_cout, adder_result} = adder_a + adder_b + adder_cin;
     assign add_sub_auipc_result = adder_result[63: 0];
-
-
-
 
 //shift
     ysyx_2022040010_shift   shift_u  (

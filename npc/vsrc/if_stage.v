@@ -4,7 +4,7 @@
 module ysyx_2022040010_if (
     input wire clk,
     input wire rst,
-    // input wire [`StallBus] stall,
+    input wire [`StallBus] stall,
 
     input wire [`BR_TO_IF_BUS]   br_bus,
 
@@ -31,7 +31,7 @@ module ysyx_2022040010_if (
             pc_reg <= `PC_MBASE;
             ce_reg <= 1'b0;
         end
-        else begin
+        else if(stall[5] == 1'b0 ) begin
             pc_reg <= next_pc;
             ce_reg <= 1'b1;
         end

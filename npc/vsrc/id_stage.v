@@ -5,7 +5,10 @@ module ysyx_2022040010_id (
     input wire clk,
     input wire rst,
     
-    // input wire [`StallBus] stall,
+    input wire [`StallBus] stall,
+
+    // output wire stallreq_for_load,
+    // output wire stallreq_for_bru,
 
     input wire [`IF_TO_ID_BUS] if_to_id_bus,
 
@@ -16,7 +19,6 @@ module ysyx_2022040010_id (
     input wire [`BP_TO_RF_BUS] mem_to_rf_bus,
     input wire [`BP_TO_RF_BUS]  wb_to_rf_bus,
 //
-
     output wire [`ID_TO_EX_BUS]  id_to_ex_bus
 );
 
@@ -30,41 +32,33 @@ module ysyx_2022040010_id (
 
     reg flag;
     reg [31:0] buf_inst;
+    wire stall_temp;
+    assign stall_temp = stall[1] | stall[2];   //stall for exe or load not flush
 
-    // always @(posedge clk) begin
-    //     if (rst) begin
-    //         if_to_id_bus_r <= `IF_TO_ID_WD'b0;
-    //         flag <=1'b0;
-    //         buf_inst <= 32'b0;
-    //     end
-    //     else if (stall[1]==`Stop && stall[2]==`NoStop) begin
-    //         if_to_id_bus_r <= `IF_TO_ID_WD'b0;
-    //         flag <= 1'b0;
-    //     end
-    //     else if (stall[1]==`NoStop) begin   //TODO:not understand
-    //         if_to_id_bus_r <= if_to_id_bus;
-    //         flag <= 1'b0;
-    //     end
-    //     else if (stall[1]==`Stop && stall[2]==`Stop && ~flag) begin
-    //         flag <= 1'b1;
-    //         buf_inst <= isram_rdata;
-    //     end
-    // end
-
-
-    always @( posedge clk) begin
-        if ( rst ) begin
+    always @(posedge clk) begin
+        if (rst) begin
             if_to_id_bus_r <= `IF_TO_ID_WD'b0;
             flag <=1'b0;
             buf_inst <= 32'b0;
         end
-        else begin
-            if_to_id_bus_r <= if_to_id_bus;
-            flag <= 1'b0;
+        else if (stall[2] == 1'b1) begin //bru flush
+            if_to_id_bus_r <= `IF_TO_ID_WD'b0;
             buf_inst <= 32'b0;
+            flag <= 1'b0;
         end
-    end 
+        else if (stall_temp && flag == 1'b0) begin //first stall
+            if_to_id_bus_r <= if_to_id_bus;
+            buf_inst <= isram_rdata;
+            flag <= 1'b1;
+        end
+        else if (stall[5] == 1'b0) begin
+            if_to_id_bus_r <= if_to_id_bus;
+            buf_inst <= isram_rdata;
+            flag <= 1'b0;
+        end
+    end
 
+    assign {ce , id_pc} = if_to_id_bus_r;
 
     //buf_inst bounce point of brunch instruction ?
     assign inst_i = ce ? flag ? buf_inst : isram_rdata : 32'b0;
@@ -380,6 +374,7 @@ module ysyx_2022040010_id (
     assign sel_rf_res   =   inst_lb     |   inst_lh     |   inst_lw     |   inst_ld
                         |   inst_lbu    |   inst_lhu    |   inst_lwu;
 
+//  TODO: stall load req
     // assign stallreq_reg_load = inst_lb  |   inst_lh     |   inst_lw     |   inst_ld
     //                         |  inst_lbu |   inst_lhu    |   inst_lwu;
 
@@ -468,8 +463,9 @@ module ysyx_2022040010_id (
     wire sel_rf_res;
     wire [63: 0] rf_rdata1;
     wire [63: 0] rf_rdata2;
-    
-    assign id_to_ex_bus = {
+    wire [`ID_TO_EX_BUS] id_to_ex_bus_temp;
+
+    assign id_to_ex_bus_temp = {
         sp_bus,         //291
         lsu_8,          //289
         lsu_16,         //288
@@ -496,7 +492,7 @@ module ysyx_2022040010_id (
         rf_rdata1,      //128
         rf_rdata2       //64
     };
-
+    assign id_to_ex_bus = flag ? `ID_TO_EX_WD'b0 : id_to_ex_bus_temp;
 
 endmodule
 

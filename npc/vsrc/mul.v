@@ -65,11 +65,11 @@ module ysyx_2022040010_mul (
             end
             2'b10: begin // (~[x] + 1) << 1
                 complemet[0] = { {{~ext_inb} + 1}, 1'b0} ;
-                mul_temp[0] = { {63{complemet[gv_j][65]} }, complemet[0]  };
+                mul_temp[0] = { {63{complemet[0][65]} }, complemet[0]  };
             end
             2'b11: begin // ~[x] + 1
                 complemet1[0] = (~ext_inb + 1);
-                mul_temp[0] =  { {64{complemet1[gv_j][64]} }, complemet1[0]  };
+                mul_temp[0] =  { {64{complemet1[0][64]} }, complemet1[0]  };
             end
             default: begin
                 mul_temp[0] = 129'b0;

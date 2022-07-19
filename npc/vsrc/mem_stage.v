@@ -15,35 +15,34 @@ module ysyx_2022040010_mem (
     // input wire [`StallBus] stall,
 
 //this input data depend on C++ code judgement
-    input wire [63: 0] dsram_rdata,
+    // input wire [63: 0] dsram_rdata,
 
     input  wire [`EX_TO_MEM_BUS] ex_to_mem_bus, 
 
     output wire [`MEM_TO_WB_BUS] mem_to_wb_bus,
 
-    output wire [`BP_TO_RF_BUS]     mem_to_rf_bus
+    output wire [`BP_TO_RF_BUS]  mem_to_rf_bus
+
 );
 
     reg [`EX_TO_MEM_BUS] ex_to_mem_bus_r;
-    reg [63: 0] dsram_rdata_r; 
 
 
     //TODO:not understand stall & flag
     reg flag;
-    reg [31: 0] dsram_rdata_buffer; 
+    // reg [31: 0] dsram_rdata_buffer; 
 
 
     always @(posedge clk) begin
-        if ( rst ) begin
+        if (rst) begin
             ex_to_mem_bus_r     <= `EX_TO_MEM_WD'b0;
-            dsram_rdata_r       <= 64'b0; 
         end
         else begin
             ex_to_mem_bus_r     <= ex_to_mem_bus;
-            dsram_rdata_r       <= dsram_rdata;
         end
     end
 
+    wire [63: 0] dsram_rdata;
     wire [ 6: 0] load_op;
     wire [63: 0] mem_pc;
     wire dram_e;
@@ -58,6 +57,7 @@ module ysyx_2022040010_mem (
     wire [63: 0] mem_pc;
 
     assign  {
+        dsram_rdata,
         load_op,     //143:137
         mem_pc,      //136:73 
         dram_e,     //    72
@@ -68,7 +68,7 @@ module ysyx_2022040010_mem (
         rf_we,      //    65
         rf_waddr,   // 68:64
         ex_result   // 63: 0
-    }   = ex_to_mem_bus;
+    }   = ex_to_mem_bus_r;
 
 // load part
     wire inst_lb,   inst_lh,    inst_lw,    inst_ld;    

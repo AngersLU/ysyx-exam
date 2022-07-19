@@ -8,30 +8,32 @@ module top (
     input wire rst,
 
     output wire isram_e,
-    // output wire isram_we,
     output wire [63: 0] isram_addr,
-    // output wire [63: 0] isram_wdata,
     input wire [31: 0] isram_rdata,
 
     output wire dsram_e,
     output wire dsram_we,
-    output wire [63: 0] dsram_addr,
-    // software selects the bit width for storage
-    // dsram_we == 4'b0001  dsram_wdata[ 7: 0] 
-    // dsram_we == 4'b0010  dsram_wdata[16: 0]
-    // dsram_we == 4'b0100  dsram_wdata[31: 0]
-    // dsram_we == 4'b1000  dsram_wdata[64: 0]
-    output wire [63: 0] dsram_wdata,
-    output wire [ 3: 0] dsram_sel,
-    input wire  [63: 0] dsram_rdata
+    // output wire [63: 0] dsram_addr,
+    // output wire [63: 0] dsram_wdata,
+    // output wire [ 7: 0] dsram_sel,
+    // input wire  [63: 0] dsram_rdata
 
-    // output wire [63: 0] debug_wb_pc,
-    // output wire [ 3: 0] debug_wb_rf_we,
-    // output wire [ 4: 0] debug_wb_rf_waddr,
-    // output wire [63: 0] debug_wb_rf_wdata 
+    output wire [63: 0] debug_wb_pc,
+    output wire bubble
 );
 
-    // wire [63: 0] isram_addr_v, dsram_addr_v; 
+    import "DPI-C" function void mem_read (
+        input longint raddr, output longint rdata );
+    import "DPI-C" function void mem_write (
+        input longint waddr, input longint wdata, input byte wmask ); 
+    wire [63: 0] dsram_addr;
+    wire [63: 0] dsram_wdata;
+    wire [ 7: 0] dsram_sel;
+    wire [63: 0] dsram_rdata;
+    always @(*) begin
+        mem_read(dsram_addr, dsram_rdata);
+        mem_write(dsram_addr, dsram_wdata, dsram_sel);
+    end
 
     ysyx_2022040010_fsl fslu (
         .clk            (clk         ),
@@ -44,7 +46,9 @@ module top (
         .dsram_addr     (dsram_addr  ),
         .dsram_wdata    (dsram_wdata ),
 		.dsram_sel		(dsram_sel	 ),
-        .dsram_rdata    (dsram_rdata )
+        .dsram_rdata    (dsram_rdata ),
+        .debug_wb_pc    (debug_wb_pc ),
+        .bubble         (bubble      )
     );
 
 
