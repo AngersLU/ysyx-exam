@@ -11,6 +11,7 @@
         "cpu.h": "c",
         "paddr.h": "c",
         "isa.h": "c",
-        "limits": "c"
+        "limits": "c",
+        "host.h": "c"
     }
 }
