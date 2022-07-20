@@ -19,7 +19,7 @@ static inline void host_write(void *addr, int len, word_t data) {
     case 2: *(uint16_t *)addr = data; return;
     case 4: *(uint32_t *)addr = data; return;
     IFDEF(CONFIG_ISA64, case 8: *(uint64_t *)addr = data;printf("\033[1;31m im here\033[0m"); return);
-    IFDEF(CONFIG_RT_CHECK, default: printf("\033[1;31m im here\033[0m"); assert(0));
+    IFDEF(CONFIG_RT_CHECK, default: printf("\033[1;31m im here\033[0m\n"); assert(0));
   }
 }
 
