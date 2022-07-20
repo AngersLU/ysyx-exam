@@ -21,8 +21,10 @@
 
 // npc difftest need 1 
 void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
-  if(direction == DIFFTEST_TO_REF)  {paddr_write(addr, n, *(word_t *)buf);}
-    
+  if(direction == DIFFTEST_TO_REF)  {
+    // paddr_write(addr, n, *(word_t *)buf);
+    printf("\033[1;31m difftest_memcpy bad \033[0m\n");
+  }
   else assert(0);
 }
 
