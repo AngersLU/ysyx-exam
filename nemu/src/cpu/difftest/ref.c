@@ -21,21 +21,6 @@
 
 // npc difftest need 1 
 void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
-  // if(direction == DIFFTEST_TO_REF) {
-  //   char* dest = (char* )guest_to_host(addr);
-  //   char* src = (char*)buf;
-  //   if(dest <= src) {
-  //     while(n-- > 0) {
-  //       *dest++ = *src++;
-  //     }
-  //   }
-  //   else {
-  //     while(n > 0) {
-  //       *(dest + n - 1) = *(src + n -1);
-  //       n--;
-  //     }
-  //   }
-  // }
   if(direction == DIFFTEST_TO_REF)  
     paddr_write(addr, n, *(word_t *)buf);
   else assert(0);
