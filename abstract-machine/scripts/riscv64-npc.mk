@@ -13,7 +13,7 @@ AM_SRCS := riscv/npc/start.S \
 CFLAGS    += -fdata-sections -ffunction-sections
 LDFLAGS   += -T $(AM_HOME)/scripts/linker.ld --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0
 
-NPCFLAGS += -b -l $(shell dirname $(IMAGE).elf)/npc-log.txt
+NPCFLAGS += -l $(shell dirname $(IMAGE).elf)/npc-log.txt
 
 LDFLAGS   += --gc-sections -e _start
 CFLAGS += -DMAINARGS=\"$(mainargs)\"
@@ -25,4 +25,4 @@ image: $(IMAGE).elf
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: image
-	make -C $(NPC_HOME) run ARGS="$(NPCFLAGS)" IMAGE=$(IMAGE).bin
+	make -C $(NPC_HOME) run IMAGE=$(IMAGE).bin

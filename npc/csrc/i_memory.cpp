@@ -15,7 +15,7 @@ uint8_t pmem[CONFIG_MSIZE] = {};
 
 
 // read.bin
-long read_inst(char *filename)
+long load_image(char *filename)
 {
   if (filename == NULL)
   {

@@ -1,15 +1,16 @@
 
 VSRCS = $(shell find $(abspath $(NPC_HOME)/vsrc) -name "*.v")
-CSRCS = $(shell find $(abspath $(NPC_HOME)/csrc) -name "*.cpp") 
-HSRCS = $(shell find $(abspath $(NPC_HOME)/csrc) -name "*.h")
-LLVM+CXXSRC = $(NEMU_HOME)src/tuils/disasm.cc
-LLVM_CXXFLAGS += $(shell llvm-config-11 --cxxflags) -fPIE
+CSRCS = $(shell find $(abspath $(NPC_HOME)/csrc) -name "*.cpp" -or -name "*.cc") 
+HSRCS += $(shell find $(abspath $(NPC_HOME)/csrc) -name "*.h")
+
+LLVM_CXXFLAGS = $(shell llvm-config-11 --cxxflags)
 LLVM_LIBS = $(shell llvm-config-11 --libs)
+
 TOP_NAME = top
 VDIR = $(NPC_HOME)/vsrc
 CDIR = $(NPC_HOME)/csrc
 IMG ?=
-AGRS ?=
+ARGS ?=
 
 BUILD_DIR = $(NPC_HOME)/build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
@@ -17,8 +18,7 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOP_NAME)
 
 default: $(BIN)
-
-$(shell mkdir -p $(BUILD_DIR))
+	$(shell mkdir -p $(BUILD_DIR))
 
 #rules for verilator
 VERILATOR_FLAGS += -MMD --build -cc --exe --trace \
@@ -28,13 +28,20 @@ VERILATOR_FLAGS += -MMD --build -cc --exe --trace \
 INC_PATH = $(NPC_HOME)/vsrc
 INCFLAGS = $(addprefix -I , $(INC_PATH))
 VCFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\""
-LDFLAGS += "-lreadline -ldl -pie $(LLVM_CXXFLAGS) $(LLVM_LIBS) -lSDL2 -lSDL2_image "
-#LDFLAGS += -lSDL2 -lSDL2_image
-CCS += $(NEMU_HOME)/src/utils/disasm.cc
+LDFLAGS += -ldl -lSDL2 -lSDL2_image
+
+sim:$(VSRCS) $(CSRCS)
+	@rm -rf $(OBJ_DIR)
+	verilator $(VERILATOR_FLAGS) --top-module $(TOP_NAME) \
+	-I$(VDIR) $(VSRCS) $(CSRCS) $(addprefix -LDFLAGS , $(LLVM_LIBS)) \
+	$(addprefix -LDFLAGS , $(LLVM_CXXFLAGS)) -LDFLAGS -ldl
+
+
+
 $(BIN): $(VSRCS) $(CSRCS) $(HSRCS)
 	@rm -rf $(OBJ_DIR)
 	verilator $(VERILATOR_FLAGS) \
-		--top-module $(TOP_NAME) $(VSRCS) $(CSRCS) $(CCS) \
+		--top-module $(TOP_NAME) $(VSRCS) $(CSRCS) \
 		$(addprefix -CFLAGS , $(VCFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) -I$(VDIR) --exe -o $(abspath $(BIN))
 	
@@ -43,8 +50,6 @@ run: $(BIN) $(IMAGE) $(ARGS)
 	@$^
 	./build/obj_dir/Vtop
 	$(call git_commit, "npc simlation")
-
-gtk:
 	@gtkwave $(OBJ_DIR)/Vtop.vcd
 
 git:

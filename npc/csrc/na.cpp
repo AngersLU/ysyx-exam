@@ -20,12 +20,9 @@ typedef uint64_t paddr_t;
 uint64_t pmem_read(paddr_t addr, int len);
 void pmem_write(paddr_t addr, int len, uint64_t data);
 
-long read_inst(char *filename);
+long load_image(char *filename);
 void difftest_step(paddr_t pc, paddr_t npc);
 void init_difftest(char *ref_so_file, long img_size, int port);
-
-extern "C" void init_disasm(const char *triple);
-extern "C" void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
 
 #define CONFIG_ITRACE 1
 
@@ -56,23 +53,6 @@ extern "C" void set_gpr_ptr(const svOpenArrayHandle r) {
   cpu_gpr = (uint64_t *)(((VerilatedDpiOpenVar *)r)->datap());
   //cpuu.pc = top->pc;
 }
-
-FILE *fpw;
-void Inst(int instruct)
-{
-  char log[128];
-  char *p = log;
-  p += snprintf(p, sizeof(log), "%lx: ", top->isram_addr);
-  if (instruct != 0 && !isebreak) {
-    disassemble(p, log + sizeof(log) - p, top->isram_addr, (uint8_t *)&instruct, 4);
-    //printf("log: %s\n", log);
-    fputs(log, fpw);
-    fputs("\n", fpw);
-  }
-}
-
-
-
 
 
 // DPI-C
@@ -156,7 +136,6 @@ void sim_exit()
 
   step_and_dump_wave();
   tfp->close();
-  fclose(fpw);
   delete top;
   delete contextp;
 }
@@ -187,86 +166,11 @@ void dump_gpr()
     printf("\n");
   }
 }
-static int cmd_info(char *args)
-{
-  // printf("********%s,%d\n",args,strcmp(args, "r"));
-  if (strcmp(args, "r") == 0)
-  {
-    //printf("********\n");
-    dump_gpr();
-  }
-
-  // else if(strcmp(args, "w") == 0){
-  // print_wp();
-  //}
-  else
-    printf("Unknown parameter '%s'\n", args);
-  // return -1;
-
-  return 0;
-}
 
 static uint64_t refpc = 0;
 bool start = true;
 
-static int cmd_si(char *args)
-{
-  uint64_t n;
-  if (args == NULL)
-    n = 10;
-  else
-  {
-    sscanf(args, "%ld", &n);
-    n *= 10;
-  }
-
-  while (n--)
-  {
-
-    if (main_time < 15)
-    {
-      top->rst = 1;
-    }
-    else
-    {
-      top->rst = 0;
-      if (top->isram_e == 1)
-      {
-        top->isram_rdata = pmem_read(top->isram_addr, 4);
-        //printf("222pc:0x%lx, instr:0x%08lx\n", top->pc, pmem_read(top->pc, 4));
-      }
-    }  
-    step_and_dump_wave();
-    if (isebreak || is_exit)
-    {
-      if(isebreak)
-        printf("\033[1;32;40mebreak /33[0m\n");
-      break;
-    }
-    
-  }
-
-  //printf("pc:0x%lx, instr:0x%08lx\n", top->pc, pmem_read(top->pc, 4));
-  if(top->clk == 1){
-    if(refpc == 0){
-      refpc = top->isram_addr;
-    }
-    else{
-      for(int i = 0; i < 32; i++)
-        cpuu.gpr[i] = cpu_gpr[i];
-      difftest_step(refpc, top->isram_addr);
-      refpc = top->isram_addr;
-    }
-      
-     
-  }
-  if (main_time < 15)
-    printf("Reset!\n");
-  return 0;
-}
-
-
-static int cmd_c(char *args)
+static int cmd_c()
 {
   while (!contextp->gotFinish()) //&& main_time < sim_time) 
   {
@@ -311,97 +215,37 @@ static int cmd_c(char *args)
 }
 
 #define NR_CMD 3
-static struct
-{
-  const char *name;
-  const char *description;
-  int (*handler)(char *);
-} cmd_table[] = {
-    {"c", "Continue the execution of the program", cmd_c},
-    //{ "q", "Exit NEMU", cmd_q },
-    {"si", "Single Step Execution", cmd_si},
-    {"info", "info r: Print register status\n       info w: Print monitors information", cmd_info}
-    /* TODO: Add more commands */
+// static struct
+// {
+//   const char *name;
+//   const char *description;
+//   int (*handler)(char *);
+// } cmd_table[] = {
+//     {"c", "Continue the execution of the program", cmd_c},
+//     //{ "q", "Exit NEMU", cmd_q },
+//     /* TODO: Add more commands */
 
-};
+// };
 char str[10];
-void sdb_mainloop()
-{
-
-  printf("Please input cmd:\n");
-  char ch;
-  int i = 0;
-  while ((ch = getchar()) != '\n') //
-  {
-    str[i] = ch;
-    i++;
-  }
-  str[i] = '\0';
-  //printf("ss:%s\n", str);
-  while (str[0] != '\0')
-  {
-    char *str_end = str + strlen(str);
-
-    /* extract the first token as the command */
-    char *cmd = strtok(str, " ");
-    // if (cmd == NULL) { continue; }
-
-    /* treat the remaining string as the arguments,
-     * which may need further parsing
-     */
-    char *args = cmd + strlen(cmd) + 1;
-    if (args >= str_end)
-    {
-      args = NULL;
-    }
-
-    int i;
-    for (i = 0; i < NR_CMD; i++)
-    {
-      if (strcmp(cmd, cmd_table[i].name) == 0)
-      {
-        if (cmd_table[i].handler(args) < 0)
-        {
-          return;
-        } // Command Call
-        break;
-      }
-    }
-    if (i == NR_CMD)
-    {
-      printf("Unknown command '%s'\n", cmd);
-    }
-
-    for (int i = 0; i < 10; i++)
-      str[i] = '\0';
-  }
-}
 
 int main(int argc, char **argv)
 {
   parse_args(argc, argv);
-  //printf("log: %s\n", img_file);
-  long img_size = read_inst(img_file);
-
-#ifdef CONFIG_ITRACE
-  init_disasm("riscv64-pc-linux-gnu");
-  fpw = fopen("file.txt", "w+");
-#endif
-  
+  long img_size = load_image(img_file);
+  printf("\033[1;31mimg_size = %lx\33[0m\n", img_size);
   char str[] = "/home/lff/ysyx-workbench/nemu/build/riscv64-nemu-interpreter-so";
   static char *diff_so_file = str;
   static int difftest_port = 1234;
   init_difftest(diff_so_file, img_size, difftest_port);
   
-  //pmem_read((*(uint64_t *)0x80008fdc),8);
   Verilated::commandArgs(argc, argv);
   sim_init();
 
   while (1) {
-    sdb_mainloop();
+    cmd_c();
     if (isebreak || is_exit)  {
-      if(cpuu.gpr[10] != 0) printf("\033[1;31;40mBAD /33[0M\n");  //assert(0);
-      else  printf("\033[1;32;40mGOOD /33[0m\n");
+      if(cpuu.gpr[10] != 0) printf("\033[1;31;40mBAD \33[0M\n");  //assert(0);
+      else  printf("\033[1;32;40mGOOD \33[0m\n");
       break;
     }
   }
