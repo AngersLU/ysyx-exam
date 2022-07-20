@@ -18,25 +18,23 @@
 #include <difftest-def.h>
 #include <memory/paddr.h>
 
-extern void pmem_write(paddr_t addr, int len, word_t data);
 
 // npc difftest need 1 
 void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
   if(direction == DIFFTEST_TO_REF) {
-    // char* dest = (void *)addr;
-    // char* src = (char*)buf;
-    // if(dest <= src) {
-    //   while(n-- > 0) {
-    //     *dest++ = *src++;
-    //   }
-    // }
-    // else {
-    //   while(n > 0) {
-    //     *(dest + n - 1) = *(src + n -1);
-    //     n--;
-    //   }
-    // }
-    pmem_write(addr, n, *(char *)buf);
+    char* dest = (char* )guest_to_host(addr);
+    char* src = (char*)buf;
+    if(dest <= src) {
+      while(n-- > 0) {
+        *dest++ = *src++;
+      }
+    }
+    else {
+      while(n > 0) {
+        *(dest + n - 1) = *(src + n -1);
+        n--;
+      }
+    }
   }
   else assert(0);
 }
