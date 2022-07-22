@@ -44,11 +44,20 @@ module ysyx_2022040010_ex (
             id_to_ex_bus_r <= id_to_ex_bus;
             flag <= 1'b1;
         end
+        else if (stall[2] == 1'b1) begin
+            id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
+            flag <= 1'b0;
+        end
         else if (stall[5] == 1'b0) begin
             id_to_ex_bus_r <= id_to_ex_bus;
             flag <= 1'b0; 
         end
+        else begin
+            id_to_ex_bus_r <= id_to_ex_bus;
+            flag <= 1'b0;
+        end
     end
+
 
     wire [`SP_BUS] sp_bus;
     wire lsu_8, lsu_16, lsu_32, lsu_64, mul_32, div_32, alu_32;
@@ -72,6 +81,7 @@ module ysyx_2022040010_ex (
     wire [`ID_TO_EX_BUS] id_to_ex_bus_temp = flag ? `ID_TO_EX_WD'b0 : id_to_ex_bus_r;
 
     assign  {
+        bru_op,
         sp_bus,         //291
         lsu_8,          //289
         lsu_16,         //288
@@ -172,6 +182,8 @@ module ysyx_2022040010_ex (
     assign alu_src2 =   sel_alu_src2[1] ? imm_I_sign_extend :
                         sel_alu_src2[2] ? imm_U_sp_extend   :
                         sel_alu_src2[3] ? shamt_zero_extend :
+                        sel_alu_src2[4] ? { 61'b0, 3'h4}    :
+                        sel_alu_src2[5] ? imm_S_sign_extend :
                         sel_rs2_forward ? rs2_forward_data  : rf_rdata2;
 
     alu alu_ex( 
@@ -192,7 +204,7 @@ module ysyx_2022040010_ex (
 
     reg [4:0] ex_rd_last;
 
-    assign stallreq_for_load = ((ex_rd_last == inst_i[19:15]) | (ex_rd_last == inst_i[24:20]) & dram_e & ~dram_we) ? 1'b1 : 1'b0;
+    assign stallreq_for_load = (((ex_rd_last == inst_i[19:15]) | (ex_rd_last == inst_i[24:20])) & dram_e & ~dram_we) ? 1'b1 : 1'b0;
 
     always @(*) begin
         if (rst) begin
@@ -228,7 +240,8 @@ module ysyx_2022040010_ex (
     assign dsram_wdata  =   inst_sb ? { {56{1'b0}}, rf_rdata2[ 7: 0]} :
                             inst_sh ? { {48{1'b0}}, rf_rdata2[15: 0]} :
                             inst_sw ? { {32{1'b0}}, rf_rdata2[31: 0]} :
-                            rf_rdata2;
+                            inst_sd ? rf_rdata2 : 64'b0;
+
     assign dsram_sel    =   lsu_64  ? 8'b1111_1111 :
                             lsu_32  ? 8'b0000_1111 :
                             lsu_16  ? 8'b0000_0011 : 
@@ -468,8 +481,10 @@ module ysyx_2022040010_ex (
                     : inst_bge  ? {pc_plus_4 + imm_B_sign_extend  }
                     : inst_bltu ? {pc_plus_4 + imm_B_sign_extend  }
                     : inst_bgeu ? {pc_plus_4 + imm_B_sign_extend  }
-                    : inst_jal  ? {pc_plus_4 + imm_B_sign_extend  }
+                    : inst_jal  ? {ex_pc     + imm_J_sign_extend  }
                     : inst_jalr ? {pc_plus_4 + imm_I_jalr_extend  } : 64'b0;
+
+    assign stallreq_for_bru = bru_e;
 
     assign br_bus   = { bru_e,
                         bru_addr    };

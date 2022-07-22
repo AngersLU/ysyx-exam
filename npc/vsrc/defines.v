@@ -4,19 +4,17 @@
 `define ZeroWord        64'h0000_0000_0000_0000  //64bits zero
 `define ZeroReg         64'h0000_0000_0000_0000  //64bits zero
 `define ZeroPc          64'h0000_0000_0000_0000  //64bits zero
-`define PC_MBASE        64'h0000_0000_8000_0000  //M_base
+`define PC_START        64'h0000_0000_7fff_fffc  //M_base
 `define WriteEnable     1'b1        //enable write
 `define WriteDisable    1'b0        //ban write
 `define ReadEnable      1'b1        //enable read
 `define ReadDisable     1'b0        //ban write
 `define AluOpBus        11: 0         //id_state output aluop_o bus width
 `define AluSel1Bus      2 : 0
-`define AluSel2Bus      3 : 0
-
-`define AluSelBus       2 : 0         //id_state output alusel_o bus width
+`define AluSel2Bus      5 : 0
 
 `define IF_TO_ID_BUS    64 :0
-`define ID_TO_EX_BUS    290:0
+`define ID_TO_EX_BUS    300:0
 `define BR_TO_IF_BUS    64 :0
 `define EX_TO_MEM_BUS   211:0
 `define MEM_TO_WB_BUS   133:0
@@ -25,7 +23,7 @@
 
 
 `define IF_TO_ID_WD     65
-`define ID_TO_EX_WD     291
+`define ID_TO_EX_WD     301
 `define BR_TO_IF_WD     65   
 `define EX_TO_MEM_WD    212
 `define MEM_TO_WB_WD    134

@@ -27,7 +27,6 @@ module ysyx_2022040010_regfile (
     //init number:32 bits:64 regs
     reg[`RegBus] regs[0:`RegNum-1];
 
-
     import "DPI-C" function void set_gpr_ptr(input logic [63:0] a [] );
     initial set_gpr_ptr(regs);
 
@@ -38,10 +37,16 @@ module ysyx_2022040010_regfile (
         if (rst == `RstDisable) begin
             if ((we == `WriteEnable) && (waddr != `RegNumLog2'h0)) begin
                 regs[waddr] <= wdata;
-                $display("rd = %h", wdata);
+                $display("rd = %x", wdata);
             end
         end
     end
+
+    // import "DPI-C" function void pc_print(input longint pc);
+
+    // always @(posedge clk) begin
+    //     pc_print({59'b0, waddr});
+    // end 
 
     //read1 handle
     always @(*) begin

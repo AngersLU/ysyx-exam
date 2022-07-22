@@ -34,11 +34,12 @@ module ysyx_2022040010_id (
     reg [31:0] buf_inst;
     wire stall_temp;
     assign stall_temp = stall[1] | stall[2];   //stall for exe or load not flush
+    
 
     always @(posedge clk) begin
         if (rst) begin
             if_to_id_bus_r <= `IF_TO_ID_WD'b0;
-            flag <=1'b0;
+            flag <= 1'b0;
             buf_inst <= 32'b0;
         end
         else if (stall[2] == 1'b1) begin //bru flush
@@ -56,12 +57,22 @@ module ysyx_2022040010_id (
             buf_inst <= isram_rdata;
             flag <= 1'b0;
         end
+        else begin
+            if_to_id_bus_r <= if_to_id_bus;
+            buf_inst <= isram_rdata;
+            flag <= 1'b0;
+        end
     end
 
     assign {ce , id_pc} = if_to_id_bus_r;
 
     //buf_inst bounce point of brunch instruction ?
-    assign inst_i = ce ? flag ? buf_inst : isram_rdata : 32'b0;
+    //TODO: need to add code to make buf_inst true instruction
+    assign inst_i = ce ? buf_inst : 32'b0;
+    // assign inst_i = ce ? flag ? buf_inst : isram_rdata : 32'b0;
+
+
+
 
 
 //　TODO:replace of bypass
@@ -112,18 +123,18 @@ module ysyx_2022040010_id (
     assign func7    = inst_i[31:25];
 
     ysyx_2022040010_regfile regfile_id(
-        .clk    (clk    ),
-        .rst    (rst    ),
+        .clk    (clk        ),
+        .rst    (rst        ),
 
-        .re1    (       ),
-        .raddr1 (rs1    ),
-        .rdata1 (rs1_data),
+        .re1    ( 1'b1      ),
+        .raddr1 (rs1        ),
+        .rdata1 (rs1_data   ),
 
-        .re2    (       ),
-        .raddr2 (rs2    ),
-        .rdata2 (rs2_data),
+        .re2    ( 1'b1      ),
+        .raddr2 (rs2        ),
+        .rdata2 (rs2_data   ),
 
-        .we     (wb_rf_we),
+        .we     (wb_rf_we   ),
         .waddr  (wb_rf_waddr),
         .wdata  (wb_rf_wdata)
     );
@@ -294,11 +305,10 @@ module ysyx_2022040010_id (
                             | inst_sh    |  inst_sw      |   inst_sd; 
     
     // pc to src1
-    assign sel_alu_src1[1]  = inst_auipc;
+    assign sel_alu_src1[1]  = inst_auipc |  inst_jal     |   inst_jalr;
     
     //nop
-    assign sel_alu_src1[2]  = inst_lui;
-    
+    assign sel_alu_src1[2]  = inst_lui;    
 
     //rs2 to src2
     assign sel_alu_src2[0]  = inst_add   |   inst_addw   |  inst_sub    |   inst_subw  
@@ -316,7 +326,11 @@ module ysyx_2022040010_id (
 
     //shamt to src2
     assign sel_alu_src2[3]  = inst_slli  |   inst_srli   |   inst_srai   
-                            | inst_slliw |   inst_srliw  |   inst_sraiw;   
+                            | inst_slliw |   inst_srliw  |   inst_sraiw;  
+
+    assign sel_alu_src2[4]  = inst_jal   |   inst_jalr;  
+    // imm_sign_extend to src2 S-type
+    assign sel_alu_src2[5]  = inst_sb    |   inst_sw     |   inst_sh     |   inst_sd;
          
 
 //ALU-special
@@ -328,7 +342,8 @@ module ysyx_2022040010_id (
     assign op_add   =   inst_add    |   inst_addw   |   inst_addi   |   inst_addiw  
                     |   inst_lb     |   inst_lh     |   inst_lw     |   inst_ld
                     |   inst_lbu    |   inst_lhu    |   inst_lwu    |   inst_sb
-                    |   inst_sh     |   inst_sw     |   inst_sd     |   inst_auipc;
+                    |   inst_sh     |   inst_sw     |   inst_sd     |   inst_auipc
+                    |   inst_jal    |   inst_jalr;
     assign op_sub   =   inst_sub    |   inst_subw;  
 
     assign op_slt   =   inst_slt    |   inst_slti;
@@ -466,6 +481,7 @@ module ysyx_2022040010_id (
     wire [`ID_TO_EX_BUS] id_to_ex_bus_temp;
 
     assign id_to_ex_bus_temp = {
+        bru_op,         //
         sp_bus,         //291
         lsu_8,          //289
         lsu_16,         //288

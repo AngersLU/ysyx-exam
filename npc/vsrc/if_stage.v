@@ -11,9 +11,7 @@ module ysyx_2022040010_if (
     output wire [`IF_TO_ID_BUS] if_to_id_bus,
 
     output wire isram_e,
-    // output wire [ 4: 0] isram_we,
     output wire [63: 0] isram_addr
-    // output wire [63: 0] isram_wdata 
 );
 
     reg [63: 0] pc_reg;
@@ -26,29 +24,44 @@ module ysyx_2022040010_if (
                 br_addr
     }   =   br_bus;
 
+    assign isram_e  = ce_reg;
+    assign isram_addr  = pc_reg;
+
     always @( posedge clk ) begin
-        if ( rst == 1'b1 ) begin
-            pc_reg <= `PC_MBASE;
+        if ( rst ) begin
+            pc_reg <= `PC_START;
             ce_reg <= 1'b0;
         end
-        else if(stall[5] == 1'b0 ) begin
+        else begin
+            // pc_reg <= 64'h0000_0000_8000_0000
             pc_reg <= next_pc;
             ce_reg <= 1'b1;
         end
+        // else if(stall[5] == 1'b0 ) begin
+        //     pc_reg <= next_pc;
+        //     ce_reg <= 1'b1;
+        //     next_pc <= br_e ? br_addr : pc_reg + 64'h4;
+        // end
     end
 
-    assign  next_pc = br_e ? br_addr : pc_reg + 64'h4;
+    assign next_pc = br_e ? br_addr : pc_reg + 64'h4;
 
-    assign isram_e  = ce_reg;
-    // assign isram_we = 5'b0;
-    assign isram_addr  = pc_reg;
-    // assign isram_wdata = 64'b0; 
+
+
+
+
+    // assign  next_pc = br_e ? br_addr : (pc_reg + 64'h4);    
+
+    wire [63: 0] if_pc;
+    assign if_pc = (pc_reg == `PC_START) ? 64'b0 : pc_reg;
     assign if_to_id_bus = {
-        ce_reg,    //    64
-        pc_reg     //63: 0
+        ce_reg,    //   64
+        if_pc     //63: 0
     };
 
 
+       
+    
     
 endmodule
 

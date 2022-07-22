@@ -14,6 +14,10 @@ uint8_t pmem[CONFIG_MSIZE] = {};
 #endif
 
 
+// pmem_read
+static inline paddr_t host_read(void *addr, int len);
+uint8_t *guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
+
 // read.bin
 long load_image(char *filename)
 {
@@ -32,12 +36,13 @@ long load_image(char *filename)
   int ret = fread(pmem, size, 1, fp);
   assert(ret == 1);
   fclose(fp);
-
+  // uint64_t addr = CONFIG_MBASE;
+  // printf("\033[1;32mfirst inst: 0x%08lx \33[0m\n", host_read(guest_to_host(addr), 4));
   return size;
 }
 
-// pmem_read
-uint8_t *guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
+
+
 
 static inline paddr_t host_read(void *addr, int len)
 {
@@ -64,17 +69,13 @@ static inline void host_write(void *addr, int len, uint64_t data)
   switch (len)
   {
   case 1:
-    *(uint8_t *)addr = data;
-    return;
+    *(uint8_t *)addr = data; return;
   case 2:
-    *(uint16_t *)addr = data;
-    return;
+    *(uint16_t *)addr = data; return;
   case 4:
-    *(uint32_t *)addr = data;
-    return;
+    *(uint32_t *)addr = data; return;
   case 8:
-    *(uint64_t *)addr = data;
-    return;
+    *(uint64_t *)addr = data; return;
   default:
     assert(0);
   }

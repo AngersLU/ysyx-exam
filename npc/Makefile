@@ -31,7 +31,7 @@ VCFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\""
 LDFLAGS += -ldl -lSDL2 -lSDL2_image
 
 sim:$(VSRCS) $(CSRCS)
-	@rm -rf $(OBJ_DIR)
+	@rm -rf $(BUILD_DIR)
 	verilator $(VERILATOR_FLAGS) --top-module $(TOP_NAME) \
 	-I$(VDIR) $(VSRCS) $(CSRCS) $(addprefix -LDFLAGS , $(LLVM_LIBS)) \
 	$(addprefix -LDFLAGS , $(LLVM_CXXFLAGS)) -LDFLAGS -ldl
