@@ -59,6 +59,7 @@ void difftest_regcpy(void *dut, bool direction) {
 
 //3
 void difftest_exec(uint64_t n) {
+  printf("\33[1;32mexec_pc = %lx \033[0m\n", cpu.pc);
   cpu_exec(n);
 }
 
