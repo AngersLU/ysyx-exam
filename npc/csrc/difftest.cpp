@@ -99,8 +99,8 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
   for(int i = 0; i < 32; i++) {
       if(ref_r->gpr[i] != cpuu.gpr[i]) {
       	  eqreg = false;
-      	  printf("difftest.cpp\n%s is different after executing instruction at PC = 0x%lx\n", reg_name(i), pc);
-      	  printf("Right %s = %lx,but now is %s = %lx\n", reg_name(i), ref_r->gpr[i], reg_name(i), cpuu.gpr[i] );
+      	  // printf("difftest.cpp\n%s is different after executing instruction at PC = 0x%lx\n", reg_name(i), pc);
+      	  // printf("Right %s = %lx,but now is %s = %lx\n", reg_name(i), ref_r->gpr[i], reg_name(i), cpuu.gpr[i] );
       }
   }
   if(ref_r->pc != cpuu.pc) {
@@ -149,9 +149,10 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
     is_skip_ref = false;
     return;
   }
-  // printf("\33[1;32mHERE \033[0m\n");
   ref_difftest_exec(1); //TODO: address error pc = 0  regcpy failed
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-
+  printf("\033[1;32mref_r.pc = 0x%08lx\033[0m\n", ref_r.pc);
   checkregs(&ref_r, pc);
+  // printf("\33[1;32mHERE \033[0m\n");
+
 }
