@@ -143,16 +143,6 @@ void sim_init() {
 }
 
 // CMD
-// void dump_gpr() {
-//   printf("Regs-> \n");
-//   for (int i = 0; i < 32; i++)
-//   {
-//     printf("%2s =  %-15ld ", reg_name(i), cpuu.gpr[i]);
-//     if ((i + 1) % 4 == 0)
-//     printf("\n");
-//   }
-// }
-
 void isa_reg_display() {
 	for(int i=0; i<32; i=i+2){				//64->16,4 but 8 seem looks better
 		printf("%s\t0x%08lx\t", regs[i], cpuu.gpr[i]);
@@ -187,7 +177,7 @@ static int cmd_c()
             printf("top->debug_wb_npc = 0x%08lx\n", top->debug_wb_npc);
             for(int i = 0; i < 32; i++) cpuu.gpr[i] = cpu_gpr[i];
             if(top->bubble != 1) {
-              difftest_step(top->debug_wb_npc, top->debug_wb_pc);
+              difftest_step(top->debug_wb_pc, top->debug_wb_npc);
             }
           }
         }
