@@ -56,7 +56,8 @@ module ysyx_2022040010_if (
     assign if_pc = (pc_reg == `PC_START) ? 64'b0 : pc_reg;
     assign if_to_id_bus = {
         ce_reg,    //   64
-        if_pc     //63: 0
+        if_pc,     //63: 0
+        next_pc
     };
 
 

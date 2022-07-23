@@ -34,7 +34,8 @@ module ysyx_2022040010_id (
     reg [31:0] buf_inst;
     wire stall_temp;
     assign stall_temp = stall[1] | stall[2];   //stall for exe or load not flush
-    
+
+    wire [63: 0] next_pc;
 
     always @(posedge clk) begin
         if (rst) begin
@@ -64,7 +65,7 @@ module ysyx_2022040010_id (
         end
     end
 
-    assign {ce , id_pc} = if_to_id_bus_r;
+    assign {ce , id_pc, next_pc} = if_to_id_bus_r;
 
     //buf_inst bounce point of brunch instruction ?
     //TODO: need to add code to make buf_inst true instruction
@@ -327,7 +328,7 @@ module ysyx_2022040010_id (
     //shamt to src2
     assign sel_alu_src2[3]  = inst_slli  |   inst_srli   |   inst_srai   
                             | inst_slliw |   inst_srliw  |   inst_sraiw;  
-
+    // src2 = 4
     assign sel_alu_src2[4]  = inst_jal   |   inst_jalr;  
     // imm_sign_extend to src2 S-type
     assign sel_alu_src2[5]  = inst_sb    |   inst_sw     |   inst_sh     |   inst_sd;
@@ -495,6 +496,7 @@ module ysyx_2022040010_id (
         rem_op,         //266
         div_op,         //262
         sru_op,         //258
+        next_pc,
         id_pc,          //252
         inst_i,         //188
         alu_op,         //156

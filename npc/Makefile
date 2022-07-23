@@ -48,9 +48,8 @@ $(BIN): $(VSRCS) $(CSRCS) $(HSRCS)
 
 run: $(BIN) $(IMAGE) $(ARGS)
 	@$^
-	./build/obj_dir/Vtop
 	$(call git_commit, "npc simlation")
-	@gtkwave $(OBJ_DIR)/Vtop.vcd
+	#@gtkwave $(NPC_HOME)/wave.vcd
 
 git:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!

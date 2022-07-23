@@ -1,5 +1,7 @@
 #include <am.h>
 #include <klib-macros.h>
+#include <platform/nemu/include/nemu.h>
+
 
 extern char _heap_start;
 int main(const char *args);

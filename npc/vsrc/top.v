@@ -19,6 +19,7 @@ module top (
     // input wire  [63: 0] dsram_rdata
 
     output wire [63: 0] debug_wb_pc,
+    output wire [63: 0] debug_wb_npc,
     output wire bubble
 );
 
@@ -48,6 +49,7 @@ module top (
 		.dsram_sel		(dsram_sel	 ),
         .dsram_rdata    (dsram_rdata ),
         .debug_wb_pc    (debug_wb_pc ),
+        .debug_wb_npc   (debug_wb_npc),
         .bubble         (bubble      )
     );
 

@@ -32,6 +32,7 @@
         "errno.h": "c",
         "lkc.h": "c",
         "expr.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "nemu.h": "c"
     }
 }

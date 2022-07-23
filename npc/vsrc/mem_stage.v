@@ -55,10 +55,16 @@ module ysyx_2022040010_mem (
 // 0 regfiel res from alu_res ; 1 form ld_res
     wire sel_rf_res;    
     wire [63: 0] mem_pc;
+    wire [1 : 0] sp_bus;
+    wire op_sp;
+    wire [63: 0] next_pc;
 
     assign  {
+        sp_bus,     //2
+        op_sp,      //1
         dsram_rdata,
         load_op,     //143:137
+        next_pc,
         mem_pc,      //136:73 
         dram_e,     //    72
         dram_we,    //    71 TODO:NOT USE
@@ -101,6 +107,9 @@ module ysyx_2022040010_mem (
     assign rf_wdata = sel_rf_res & dram_e ? mem_result : ex_result;
 
     assign mem_to_wb_bus = {
+        sp_bus,
+        op_sp,
+        next_pc,
         mem_pc,     //133:70
         rf_we,      //    69
         rf_waddr,   // 68:64

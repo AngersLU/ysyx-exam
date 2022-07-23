@@ -97,15 +97,15 @@ const char* reg_name(int idx) {
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
   bool eqreg = true; 
-  for(int i = 0; i < 32; i++)
-      if(ref_r->gpr[i] != cpuu.gpr[i]){
+  for(int i = 0; i < 32; i++) {
+      if(ref_r->gpr[i] != cpuu.gpr[i]) {
       	  eqreg = false;
-      	  printf("%s is different after executing instruction at PC = 0x%lx\n", reg_name(i), pc);
+      	  printf("difftest.cpp\n%s is different after executing instruction at PC = 0x%lx\n", reg_name(i), pc);
       	  printf("Right %s = %ld,but now is %s = %ld\n", reg_name(i), ref_r->gpr[i], reg_name(i), cpuu.gpr[i] );
       }
-  
-  if(ref_r->pc != cpuu.pc){
-    printf("ref_r->pc:%lx,pc:%lx\n",ref_r->pc,cpuu.pc);
+  }
+  if(ref_r->pc != cpuu.pc) {
+    printf("difftest.cpp\nref_r->pc:%08lx\npc:%08lx\n",ref_r->pc,cpuu.pc);
     eqreg = false;
     printf("The next pc is different after executing instruction at PC = 0x%lx\n", pc);
   }
@@ -119,7 +119,7 @@ static void checkregs(CPU_state *ref, vaddr_t pc)
   if (!isa_difftest_checkregs(ref, pc))
   {
     exit_now();
-    dump_gpr();
+    isa_reg_display();
   }
 }
 
@@ -141,8 +141,6 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
       printf("can not catch up with ref.pc = %lx at pc = %lx", ref_r.pc, pc);
     return;
   }
-
- 
 
   if (is_skip_ref)
   {

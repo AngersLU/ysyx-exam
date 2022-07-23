@@ -79,6 +79,8 @@ module ysyx_2022040010_ex (
     wire [63: 0] rf_rdata1;
     wire [63: 0] rf_rdata2;
     wire [`ID_TO_EX_BUS] id_to_ex_bus_temp = flag ? `ID_TO_EX_WD'b0 : id_to_ex_bus_r;
+    wire [63: 0] next_pc;
+    wire [63: 0] real_npc;
 
     assign  {
         bru_op,
@@ -95,6 +97,7 @@ module ysyx_2022040010_ex (
         rem_op,         //266
         div_op,         //262
         sru_op,         //258
+        next_pc,
         ex_pc,         //252
         inst_i,         //188
         alu_op,         //156
@@ -168,7 +171,7 @@ module ysyx_2022040010_ex (
 
 //   sel_alu_src1[2]  special handle
     assign imm_U_sp_extend = { {32{imm_U[19]}}, imm_U[19:0], 12'b0 };
-    assign imm_I_jalr_extend = { {imm_I_sign_extend}&{~64'b1}};
+    // assign imm_I_jalr_extend = { {imm_I_sign_extend}&{~64'b1}};
 
     wire [63:0] alu_src1,   alu_src2;
     wire [63:0] alu_result, ex_result;
@@ -482,23 +485,15 @@ module ysyx_2022040010_ex (
                     : inst_bltu ? {pc_plus_4 + imm_B_sign_extend  }
                     : inst_bgeu ? {pc_plus_4 + imm_B_sign_extend  }
                     : inst_jal  ? {ex_pc     + imm_J_sign_extend  }
-                    : inst_jalr ? {pc_plus_4 + imm_I_jalr_extend  } : 64'b0;
+                    : inst_jalr ? {{rf_rdata1 + imm_I_sign_extend} & ~64'b1  } : 64'b0;
 
     assign stallreq_for_bru = bru_e;
+    assign real_npc = bru_e ? bru_addr : next_pc;
 
     assign br_bus   = { bru_e,
                         bru_addr    };
 
-//sp_handle
-    import "DPI-C" function void ebreak;
-    always @ (*) begin
-        if(alu_op[0] == 1 & sp_bus[0] == 1) begin
-            ebreak();
-        end
-        else if ( alu_op[0] == 1 & sp_bus[1] == 1) begin
-            // ecall();//TODO: no finished yet
-        end
-    end
+
 
 //out
     assign ex_result =  alu_over ? alu_result :
@@ -508,8 +503,11 @@ module ysyx_2022040010_ex (
 
 // store instruction over    211:0
     assign ex_to_mem_bus = {
+        sp_bus,      //ecall / ebreak 2
+        alu_op[0],  //op_sp          1
         dsram_rdata, 
         load_op,    //143:137 148
+        real_npc,
         ex_pc,      //136:73  141
         dram_e,     //    72  77
         dram_we,    //    71  76

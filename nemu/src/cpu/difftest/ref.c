@@ -38,9 +38,19 @@ void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
 void difftest_regcpy(void *dut, bool direction) {
   CPU_state *s = dut;
   if(direction == DIFFTEST_TO_REF) {
+    cpu.pc = s->pc;
+    cpu.mepc = s->mepc;
+    cpu.mstatus = s->mstatus;
+    cpu.mcause = s->mcause;
+    cpu.mtvec = s->mtvec;
     for (int i = 0; i < 32; i++ ) cpu.gpr[i] = s->gpr[i];
   }
   else if(direction == DIFFTEST_TO_DUT) {
+    s->pc = cpu.pc;
+    s->mepc = cpu.mepc;
+    s->mstatus = cpu.mstatus;
+    s->mcause = cpu.mcause;
+    s->mtvec = cpu.mtvec;
     for (int i = 0; i < 32; i++ ) s->gpr[i] = cpu.gpr[i];
   }
   else assert(0);

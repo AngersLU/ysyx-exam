@@ -20,6 +20,7 @@ module ysyx_2022040010_fsl (
     input  wire [63: 0] dsram_rdata,
 
     output wire [63: 0] debug_wb_pc,
+    output wire [63: 0] debug_wb_npc,
     output wire bubble
 
 );
@@ -63,7 +64,6 @@ module ysyx_2022040010_fsl (
         .ex_to_rf_bus       (ex_to_rf_bus       ),
         .mem_to_rf_bus      (mem_to_rf_bus      ),
         .wb_to_rf_bus       (wb_to_rf_bus       ),
-
         .id_to_ex_bus       (id_to_ex_bus       )
     );
 
@@ -100,6 +100,7 @@ module ysyx_2022040010_fsl (
         .mem_to_wb_bus      (mem_to_wb_bus      ),
         .wb_to_rf_bus       (wb_to_rf_bus       ),
         .debug_wb_pc        (debug_wb_pc        ),
+        .debug_wb_npc       (debug_wb_npc       ),
         .bubble             (bubble             )
     );
 

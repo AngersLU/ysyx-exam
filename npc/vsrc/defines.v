@@ -13,20 +13,19 @@
 `define AluSel1Bus      2 : 0
 `define AluSel2Bus      5 : 0
 
-`define IF_TO_ID_BUS    64 :0
-`define ID_TO_EX_BUS    300:0
+`define IF_TO_ID_BUS    128 :0
+`define ID_TO_EX_BUS    364:0
 `define BR_TO_IF_BUS    64 :0
-`define EX_TO_MEM_BUS   211:0
-`define MEM_TO_WB_BUS   133:0
+`define EX_TO_MEM_BUS   278:0
+`define MEM_TO_WB_BUS   200:0
 `define SP_BUS          1 : 0
 
 
-
-`define IF_TO_ID_WD     65
-`define ID_TO_EX_WD     301
+`define IF_TO_ID_WD     129
+`define ID_TO_EX_WD     365
 `define BR_TO_IF_WD     65   
-`define EX_TO_MEM_WD    212
-`define MEM_TO_WB_WD    134
+`define EX_TO_MEM_WD    279
+`define MEM_TO_WB_WD    201
 `define SP_WD           2
 
 
