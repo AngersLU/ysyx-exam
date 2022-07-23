@@ -151,6 +151,7 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
   }
   ref_difftest_exec(1); 
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+  printf("\33[1;31m HERE \033[0m\n");
   //printf("dddddddddddddddddddd\n");
   checkregs(&ref_r, pc);
 }
