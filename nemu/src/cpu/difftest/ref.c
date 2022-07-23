@@ -23,8 +23,8 @@
 void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
   if(direction == DIFFTEST_TO_REF)  {
     // paddr_write(addr, n, *(word_t *)buf);
-    printf("\033[1;31mnemu-ref.c\ndifftest_memcpy addr: %x\033[0m\n", addr);
     for (int i = 0; i < n; i++) {
+    printf("\033[1;31mnemu-ref.c\ndifftest_memcpy addr: %x\033[0m\n", addr);  
       uint8_t ret = *(uint8_t *)buf;
       paddr_write(addr, 1, ret);
       addr++;
