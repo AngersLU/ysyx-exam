@@ -150,7 +150,7 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
     return;
   }
   // printf("\33[1;32mHERE \033[0m\n");
-  ref_difftest_exec(1); //TODO: address error
+  ref_difftest_exec(1); //TODO: address error pc = 0  regcpy failed
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
   checkregs(&ref_r, pc);
