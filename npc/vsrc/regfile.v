@@ -37,7 +37,8 @@ module ysyx_2022040010_regfile (
         if (rst == `RstDisable) begin
             if ((we == `WriteEnable) && (waddr != `RegNumLog2'h0)) begin
                 regs[waddr] <= wdata;
-                $display("rd = %x", wdata);
+                $display("npc-regfile-rd = %x", waddr);
+                $display(" npc-regfile-wdata = %x", wdata);
             end
         end
     end

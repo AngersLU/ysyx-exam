@@ -213,7 +213,7 @@ int main(int argc, char **argv)
   parse_args(argc, argv);
   long img_size = load_image(img_file);
   printf("\033[1;31mWelcome to fxxk NPC\033[0m\n");
-  printf("\033[1;32mimg_size = %lx\33[0m\n", img_size);
+  printf("\033[1;32mimg_size %lx\33[0m\n", img_size);
 
   char str[] = "/home/lff/ysyx-workbench/nemu/build/riscv64-nemu-interpreter-so";
   static char *diff_so_file = str;
