@@ -125,14 +125,12 @@ static void checkregs(CPU_state *ref, vaddr_t pc)
 void difftest_step(vaddr_t pc, vaddr_t npc)
 {
   CPU_state ref_r;
-  printf("difftest.cpp:128\npc = 0x%08lx\n", pc);
-  printf("npc = 0x%08lx\n", npc);
   if (skip_dut_nr_inst > 0)
   {
+    printf("\33[1;32mHERE \033[0m\n");
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     if (ref_r.pc == npc)
     {
-      printf("\33[1;32mHERE \033[0m\n");
       skip_dut_nr_inst = 0;
       checkregs(&ref_r, npc);
       return;
@@ -150,6 +148,7 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
     is_skip_ref = false;
     return;
   }
+  printf("npc = 0x%08lx\n", ref.pc);
   ref_difftest_exec(1); //TODO: address error pc = 0  regcpy failed
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
   checkregs(&ref_r, pc);

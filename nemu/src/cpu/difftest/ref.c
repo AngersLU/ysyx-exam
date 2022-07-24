@@ -52,7 +52,7 @@ void difftest_regcpy(void *dut, bool direction) {
     s->mcause = cpu.mcause;
     s->mtvec = cpu.mtvec;
     for (int i = 0; i < 32; i++ ) s->gpr[i] = cpu.gpr[i];
-    printf("\033[1;32ms->pc = 0x%08lx\033[0m\n", s->pc);
+    // printf("\033[1;32ms->pc = 0x%08lx\033[0m\n", s->pc);
   }
   else assert(0);
 }
