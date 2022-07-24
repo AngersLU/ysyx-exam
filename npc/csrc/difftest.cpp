@@ -79,6 +79,7 @@ void init_difftest(char *ref_so_file, long img_size, int port)
   ref_difftest_init(port);
   ref_difftest_memcpy(RESET_VECTOR, (void *)pmem, img_size, DIFFTEST_TO_REF);
   ref_difftest_regcpy(&cpuu, DIFFTEST_TO_REF);
+  printf("cpuu.pc = 0x%08lx\n", cpuu.pc);
 
 }
 
@@ -148,7 +149,7 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
     is_skip_ref = false;
     return;
   }
-  printf("npc = 0x%08lx\n", ref.pc);
+  printf("ref.pc = 0x%08lx\n", ref_r.pc);
   ref_difftest_exec(1); //TODO: address error pc = 0  regcpy failed
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
   checkregs(&ref_r, pc);
