@@ -105,7 +105,7 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t npc) {
       }
   }
   if(ref_r->pc != npc) {
-    printf("difftest.cpp\nref_r->npc:%08lx\nnpc:%08lx\n",ref_r->pc,npc);
+    printf("difftest.cpp\nref_r->pc:%08lx\nnpc:%08lx\n",ref_r->pc,npc);
     eqreg = false;
     printf("now pc 0x%08lx\n", cpuu.pc);
   }

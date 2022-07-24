@@ -153,7 +153,7 @@ void isa_reg_display() {
 }
 
 static uint64_t refpc = 0;
-
+static uint64_t pc;
 static int cmd_c()
 {
   while (!contextp->gotFinish()) //&& main_time < sim_time) 
@@ -172,14 +172,16 @@ static int cmd_c()
             top->isram_rdata = pmem_read(top->isram_addr, 4);
           }
           //printf("pc:0x%lx, bubble:0x%08lx\n", top->difftest_pc, top->bubble);
-          if(top->debug_wb_pc >= CONFIG_MBASE && top->debug_wb_npc <= (CONFIG_MBASE + CONFIG_MSIZE) ) {
-            for(int i = 0; i < 32; i++) cpuu.gpr[i] = cpu_gpr[i];
-            // sp regs are used for addtion
-            if(top->bubble != 1) {
-              difftest_step(top->debug_wb_pc, top->debug_wb_npc);
-              cpuu.pc = top->debug_wb_npc;
+          if(main_time >= 60) {
+            if(top->debug_wb_pc >= CONFIG_MBASE && top->debug_wb_npc <= (CONFIG_MBASE + CONFIG_MSIZE) ) {
+              for(int i = 0; i < 32; i++) cpuu.gpr[i] = cpu_gpr[i];
+              // sp regs are used for addtion
+              if(top->bubble != 1) {
+                difftest_step(pc, top->debug_wb_pc);
+              }
             }
           }
+          pc = top->debug_wb_pc;
         }
       }
     }
