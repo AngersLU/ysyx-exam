@@ -49,6 +49,7 @@ void difftest_skip_dut(int nr_ref, int nr_dut)
 
 void init_difftest(char *ref_so_file, long img_size, int port)
 {
+  cpuu.pc = CONFIG_MBASE;
   assert(ref_so_file != NULL);
 
   void *handle;
@@ -79,7 +80,6 @@ void init_difftest(char *ref_so_file, long img_size, int port)
   ref_difftest_init(port);
   ref_difftest_memcpy(RESET_VECTOR, (void *)pmem, img_size, DIFFTEST_TO_REF);
   ref_difftest_regcpy(&cpuu, DIFFTEST_TO_REF);
-  printf("cpuu.pc = 0x%08lx\n", cpuu.pc);
 
 }
 
@@ -95,19 +95,19 @@ const char* reg_name(int idx) {
   return regs[idx];
 }
 
-bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
+bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t npc) {
   bool eqreg = true; 
   for(int i = 0; i < 32; i++) {
       if(ref_r->gpr[i] != cpuu.gpr[i]) {
       	  eqreg = false;
-      	  // printf("difftest.cpp\n%s is different after executing instruction at PC = 0x%lx\n", reg_name(i), pc);
-      	  // printf("Right %s = %lx,but now is %s = %lx\n", reg_name(i), ref_r->gpr[i], reg_name(i), cpuu.gpr[i] );
+      	  printf("difftest.cpp\n\033[36m%s \033[34mis different at pc = 0x%08lx\n", reg_name(i), cpuu.pc);
+      	  printf("right %08lx, wrong %08lx\033[0m\n", ref_r->gpr[i], cpuu.gpr[i] );
       }
   }
-  if(ref_r->pc != cpuu.pc) {
-    printf("difftest.cpp\nref_r->pc:%08lx\npc:%08lx\n",ref_r->pc,cpuu.pc);
+  if(ref_r->pc != npc) {
+    printf("difftest.cpp\nref_r->npc:%08lx\nnpc:%08lx\n",ref_r->pc,npc);
     eqreg = false;
-    printf("The next pc is different after executing instruction at PC = 0x%lx\n", pc);
+    printf("now pc 0x%08lx\n", cpuu.pc);
   }
       
   return eqreg;
@@ -128,7 +128,6 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
   CPU_state ref_r;
   if (skip_dut_nr_inst > 0)
   {
-    printf("\33[1;32mHERE \033[0m\n");
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     if (ref_r.pc == npc)
     {
@@ -149,9 +148,11 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
     is_skip_ref = false;
     return;
   }
-  printf("ref.pc = 0x%08lx\n", ref_r.pc);
-  ref_difftest_exec(1); //TODO: address error pc = 0  regcpy failed
+  ref_difftest_exec(1);
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-  checkregs(&ref_r, pc);
+
+  printf("ref.pc = 0x%08lx\n", ref_r.pc);
+
+  checkregs(&ref_r, npc);
 
 }
