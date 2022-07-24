@@ -132,6 +132,7 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     if (ref_r.pc == npc)
     {
+      printf("\33[1;32mHERE \033[0m\n");
       skip_dut_nr_inst = 0;
       checkregs(&ref_r, npc);
       return;
@@ -151,8 +152,6 @@ void difftest_step(vaddr_t pc, vaddr_t npc)
   }
   ref_difftest_exec(1); //TODO: address error pc = 0  regcpy failed
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-  printf("\033[1;32mref_r.pc = 0x%08lx\033[0m\n", ref_r.pc);
   checkregs(&ref_r, pc);
-  // printf("\33[1;32mHERE \033[0m\n");
 
 }
