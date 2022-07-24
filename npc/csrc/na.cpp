@@ -173,8 +173,6 @@ static int cmd_c()
           }
           //printf("pc:0x%lx, bubble:0x%08lx\n", top->difftest_pc, top->bubble);
           if(top->debug_wb_pc >= CONFIG_MBASE && top->debug_wb_npc <= (CONFIG_MBASE + CONFIG_MSIZE) ) {
-            printf("na.cpp:\ntop->debug_wb_pc = 0x%08lx\n", top->debug_wb_pc);
-            printf("top->debug_wb_npc = 0x%08lx\n", top->debug_wb_npc);
             for(int i = 0; i < 32; i++) cpuu.gpr[i] = cpu_gpr[i];
             // sp regs are used for addtion
             if(top->bubble != 1) {

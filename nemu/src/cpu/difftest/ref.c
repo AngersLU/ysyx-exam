@@ -70,5 +70,4 @@ void difftest_raise_intr(word_t NO) {
 void difftest_init(int port) {
   /* Perform ISA dependent initialization. */
   init_isa();
-  printf("\33[1;32mnemu-ref.c-isa_pc = %lx \033[0m\n", cpu.pc);
 }
