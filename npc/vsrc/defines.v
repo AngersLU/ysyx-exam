@@ -11,30 +11,26 @@
 `define ReadDisable     1'b0        //ban write
 `define AluOpBus        11: 0         //id_state output aluop_o bus width
 `define AluSel1Bus      2 : 0
-`define AluSel2Bus      5 : 0
+`define AluSel2Bus      6 : 0
 
 `define IF_TO_ID_BUS    128 :0
-`define ID_TO_EX_BUS    364:0
+`define ID_TO_EX_BUS    365:0
 `define BR_TO_IF_BUS    64 :0
 `define EX_TO_MEM_BUS   278:0
 `define MEM_TO_WB_BUS   200:0
 `define SP_BUS          1 : 0
 
-
 `define IF_TO_ID_WD     129
-`define ID_TO_EX_WD     365
+`define ID_TO_EX_WD     366
 `define BR_TO_IF_WD     65   
 `define EX_TO_MEM_WD    279
 `define MEM_TO_WB_WD    201
 `define SP_WD           2
 
-
 //bypass
 `define BP_TO_RF_BUS    69: 0
 
 `define BP_TO_RF_WD     70     
-
-
 
 
 `define InstValid       1'b0        //instruction valid

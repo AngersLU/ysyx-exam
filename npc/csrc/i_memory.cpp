@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <assert.h>
+#include "na.h"
 typedef uint64_t paddr_t;
 #define CONFIG_MSIZE 0x8000000
 #define CONFIG_MBASE 0x80000000
@@ -17,6 +18,7 @@ uint8_t pmem[CONFIG_MSIZE] = {};
 // pmem_read
 static inline paddr_t host_read(void *addr, int len);
 uint8_t *guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
+
 
 // read.bin
 long load_image(char *filename)
@@ -90,4 +92,5 @@ uint64_t pmem_read(paddr_t addr, int len)
 void pmem_write(paddr_t addr, int len, uint64_t data)
 { 
   host_write(guest_to_host(addr), len, data);
+
 }

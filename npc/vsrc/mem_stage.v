@@ -67,7 +67,7 @@ module ysyx_2022040010_mem (
         next_pc,
         mem_pc,      //136:73 
         dram_e,     //    72
-        dram_we,    //    71 TODO:NOT USE
+        dram_we,    //    71 
         sel_lsu_byte,//70:67
         //0 form alu_res, 1 from ld_res
         sel_rf_res, //    66
@@ -91,7 +91,7 @@ module ysyx_2022040010_mem (
     wire [63: 0] mem_result;
     wire [63: 0] rf_wdata;
 
-    assign b_data = sel_lsu_byte[0] ? dsram_rdata[ 7: 0] : 8'b0;
+    assign b_data = sel_lsu_byte[0] ? dsram_rdata[ 7: 0] :  8'b0;
     assign h_data = sel_lsu_byte[1] ? dsram_rdata[15: 0] : 16'b0;
     assign w_data = sel_lsu_byte[2] ? dsram_rdata[31: 0] : 32'b0;
     assign d_data = sel_lsu_byte[3] ? dsram_rdata[63: 0] : 64'b0;
@@ -116,8 +116,11 @@ module ysyx_2022040010_mem (
         rf_wdata    // 63: 0
     };
 
+    wire rf_we_o;
+    assign rf_we_o = (rf_waddr == 5'b0) ? 1'b0 : rf_we;
+
     assign mem_to_rf_bus = {
-        rf_we,
+        rf_we_o,
         rf_waddr,
         rf_wdata
     };

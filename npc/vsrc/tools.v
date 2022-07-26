@@ -25,7 +25,7 @@ module decoder_7_128 (
 
     genvar i;
     generate
-        for (i = 0; i < 127; i = i + 1)
+        for (i = 0; i < 128; i = i + 1)
         begin: decoder7
             assign out[i] = (in == i);
         end
@@ -41,7 +41,7 @@ module decoder_3_8 (
 
     genvar i;
     generate 
-        for (i = 0; i < 7; i = i + 1) 
+        for (i = 0; i < 8; i = i + 1) 
             begin: decoder3
                 assign out[i] = (in == i);
             end

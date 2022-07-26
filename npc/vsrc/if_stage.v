@@ -32,22 +32,15 @@ module ysyx_2022040010_if (
             pc_reg <= `PC_START;
             ce_reg <= 1'b0;
         end
+        else if(stall[0] | stall[1]) begin //exestall or loadstall
+        end
         else begin
-            // pc_reg <= 64'h0000_0000_8000_0000
             pc_reg <= next_pc;
             ce_reg <= 1'b1;
         end
-        // else if(stall[5] == 1'b0 ) begin
-        //     pc_reg <= next_pc;
-        //     ce_reg <= 1'b1;
-        //     next_pc <= br_e ? br_addr : pc_reg + 64'h4;
-        // end
     end
 
     assign next_pc = br_e ? br_addr : pc_reg + 64'h4;
-
-
-
 
 
     // assign  next_pc = br_e ? br_addr : (pc_reg + 64'h4);    

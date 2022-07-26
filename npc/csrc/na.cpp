@@ -39,6 +39,11 @@ struct CPU_state
 {
   uint64_t gpr[32];
   uint64_t pc;
+
+  uint64_t mepc;
+  uint64_t mstatus;
+  uint64_t mcause;
+  uint64_t mtvec;
 }cpuu;
 
 
@@ -145,8 +150,8 @@ void sim_init() {
 // CMD
 void isa_reg_display() {
 	for(int i=0; i<32; i=i+2){				//64->16,4 but 8 seem looks better
-		printf("%s\t0x%08lx\t", regs[i], cpuu.gpr[i]);
-		printf("%s\t0x%08lx\n", regs[i+1], cpuu.gpr[i+1]);
+		printf("%s\t0x%08lx\t", regs[i], cpu_gpr[i]);
+		printf("%s\t0x%08lx\n", regs[i+1], cpu_gpr[i+1]);
 	}
 	printf("pc\t0x%08lx\n", cpuu.pc);
 
@@ -154,6 +159,8 @@ void isa_reg_display() {
 
 static uint64_t refpc = 0;
 static uint64_t pc;
+static uint64_t npc;
+bool bubble;
 static int cmd_c()
 {
   while (!contextp->gotFinish()) //&& main_time < sim_time) 
@@ -173,15 +180,19 @@ static int cmd_c()
           }
           //printf("pc:0x%lx, bubble:0x%08lx\n", top->difftest_pc, top->bubble);
           if(main_time >= 60) {
-            if(top->debug_wb_pc >= CONFIG_MBASE && top->debug_wb_npc <= (CONFIG_MBASE + CONFIG_MSIZE) ) {
+            if(pc >= CONFIG_MBASE && pc <= (CONFIG_MBASE + CONFIG_MSIZE) ) {
               for(int i = 0; i < 32; i++) cpuu.gpr[i] = cpu_gpr[i];
               // sp regs are used for addtion
-              if(top->bubble != 1) {
-                difftest_step(pc, top->debug_wb_pc);
+              if(bubble != 1) {
+                // printf("     pc 0x%08lx \n", pc);
+                difftest_step(pc, npc);
               }
             }
           }
           pc = top->debug_wb_pc;
+          npc = top->debug_wb_npc;
+          bubble = top->bubble;
+          cpuu.pc = pc;
         }
       }
     }

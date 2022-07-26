@@ -51,8 +51,11 @@ module ysyx_2022040010_wb (
     assign debug_wb_npc = next_pc;
     assign bubble = (wb_pc == 64'b0) ? 1'b1 : 1'b0;
 
+    wire rf_we_o;
+    assign rf_we_o = (rf_waddr == 5'b0) ? 1'b0 : rf_we;
+
     assign wb_to_rf_bus = {
-        rf_we,
+        rf_we_o,
         rf_waddr,
         rf_wdata
     };

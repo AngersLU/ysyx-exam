@@ -42,6 +42,8 @@ module ysyx_2022040010_fsl (
     wire stallreq_for_bru;
     wire stallreq_for_ex;
 
+    wire [ 6: 0] ex_to_id_for_stallload;
+
     wire [63: 0] dsram_rdata_v;
     assign dsram_rdata_v = dsram_rdata;
 
@@ -59,6 +61,8 @@ module ysyx_2022040010_fsl (
         .clk                (clk                ),
         .rst                (rst                ),
         .stall              (stall              ),
+        .stallreq_for_load  (stallreq_for_load  ),
+        .ex_to_id_for_stallload(ex_to_id_for_stallload),
         .if_to_id_bus       (if_to_id_bus       ),
         .isram_rdata        (isram_rdata        ),
         .ex_to_rf_bus       (ex_to_rf_bus       ),
@@ -72,11 +76,11 @@ module ysyx_2022040010_fsl (
         .rst                (rst                ),
         .stall              (stall              ),
         .stallreq_for_ex    (stallreq_for_ex    ),
-        .stallreq_for_load  (stallreq_for_load  ),
         .stallreq_for_bru   (stallreq_for_bru   ),
         .id_to_ex_bus       (id_to_ex_bus       ),
         .ex_to_mem_bus      (ex_to_mem_bus      ),
         .ex_to_rf_bus       (ex_to_rf_bus       ),
+        .ex_to_id_for_stallload(ex_to_id_for_stallload),
         .br_bus             (br_bus             ),
         .dsram_e            (dsram_e            ),
         .dsram_we           (dsram_we           ),

@@ -8,7 +8,6 @@ module ysyx_2022040010_ex (
 
     input wire [`StallBus] stall,
     output wire stallreq_for_ex,  
-    output wire stallreq_for_load,
     output wire stallreq_for_bru,  
 
     input wire [`ID_TO_EX_BUS] id_to_ex_bus,
@@ -16,6 +15,8 @@ module ysyx_2022040010_ex (
     output wire [`EX_TO_MEM_BUS] ex_to_mem_bus,
 
     output wire [`BP_TO_RF_BUS] ex_to_rf_bus,
+
+    output wire [ 6: 0] ex_to_id_for_stallload,  //dram_we + dram_e + rd
 
     output wire [`BR_TO_IF_BUS] br_bus,
 
@@ -31,8 +32,6 @@ module ysyx_2022040010_ex (
 
     reg [`ID_TO_EX_BUS] id_to_ex_bus_r;
 
-    wire stall_temp;
-    assign stall_temp = stall[1] | stall[0];
     reg flag;
 
     always @(posedge clk) begin
@@ -40,11 +39,10 @@ module ysyx_2022040010_ex (
             id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
             flag <= 1'b0;
         end
-        else if (stall_temp == 1'b1 && flag == 1'b0) begin
-            id_to_ex_bus_r <= id_to_ex_bus;
+        else if (stall[1] == 1'b1 && flag == 1'b0) begin
             flag <= 1'b1;
         end
-        else if (stall[2] == 1'b1) begin
+        else if (stall[2] == 1'b1 | stall[0]) begin
             id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
             flag <= 1'b0;
         end
@@ -78,9 +76,11 @@ module ysyx_2022040010_ex (
     wire sel_rf_res;
     wire [63: 0] rf_rdata1;
     wire [63: 0] rf_rdata2;
-    wire [`ID_TO_EX_BUS] id_to_ex_bus_temp = flag ? `ID_TO_EX_WD'b0 : id_to_ex_bus_r;
+    wire [`ID_TO_EX_BUS] id_to_ex_bus_temp;
     wire [63: 0] next_pc;
     wire [63: 0] real_npc;
+
+    assign id_to_ex_bus_temp = flag ? `ID_TO_EX_WD'b0 : id_to_ex_bus_r;
 
     assign  {
         bru_op,
@@ -175,19 +175,21 @@ module ysyx_2022040010_ex (
 
     wire [63:0] alu_src1,   alu_src2;
     wire [63:0] alu_result, ex_result;
+    wire [63:0] src2_zero_extend;
 
     wire alu_over;
 
     assign alu_src1 =   sel_alu_src1[1] ? ex_pc : 
-                        sel_alu_src1[2] ? 64'b0 :
-                        sel_rs1_forward ? rs1_forward_data : rf_rdata1;
+                        sel_alu_src1[2] ? 64'b0 : rf_rdata1;
+
+    assign src2_zero_extend = {59'b0, rf_rdata2[4:0]};
 
     assign alu_src2 =   sel_alu_src2[1] ? imm_I_sign_extend :
                         sel_alu_src2[2] ? imm_U_sp_extend   :
                         sel_alu_src2[3] ? shamt_zero_extend :
                         sel_alu_src2[4] ? { 61'b0, 3'h4}    :
                         sel_alu_src2[5] ? imm_S_sign_extend :
-                        sel_rs2_forward ? rs2_forward_data  : rf_rdata2;
+                        sel_alu_src2[6] ? src2_zero_extend  : rf_rdata2;
 
     alu alu_ex( 
         .alu_op         (alu_op     ),
@@ -205,18 +207,6 @@ module ysyx_2022040010_ex (
     wire [ 3: 0]  sel_lsu_byte;
     wire [ 6: 0]  load_op;
 
-    reg [4:0] ex_rd_last;
-
-    assign stallreq_for_load = (((ex_rd_last == inst_i[19:15]) | (ex_rd_last == inst_i[24:20])) & dram_e & ~dram_we) ? 1'b1 : 1'b0;
-
-    always @(*) begin
-        if (rst) begin
-            ex_rd_last = 5'b0;    
-        end
-        else begin
-            ex_rd_last = rf_waddr;
-        end
-    end
 
     assign {
          inst_sb, inst_sh,  inst_sw, inst_sd
@@ -288,9 +278,9 @@ module ysyx_2022040010_ex (
         .ret            (rst            ),
         .mul_32         (mul_32         ),  
         .mul_ina_s      (mul_ina_s      ),
-        .ina            (real_data1      ),
+        .ina            (rf_rdata1      ),
         .mul_inb_s      (mul_inb_s      ),
-        .inb            (real_data2      ),
+        .inb            (rf_rdata2      ),
         .sel_mul_hilo   (sel_mul_hilo   ),
 
         .mul_result     (mul_result     ),
@@ -317,6 +307,7 @@ module ysyx_2022040010_ex (
     assign stallreq_for_mul = inst_mul  | inst_mulh | inst_mulhsu | 
                             | inst_mulhu| inst_mulw;
     // assign stallreq_for_ex = stallreq_for_div | (stallreq_for_mul & ~mul_over);
+    //TODO: mul changed to pipelining
     assign stallreq_for_ex = stallreq_for_div;
 
     reg [63: 0] div_data1;
@@ -427,7 +418,6 @@ module ysyx_2022040010_ex (
         end
     end
 
-
 // bru
     wire [ 7: 0] bru_op;
     wire    inst_jal, inst_jalr, inst_beq, inst_bne, inst_blt, inst_bge, 
@@ -445,28 +435,16 @@ module ysyx_2022040010_ex (
     wire rs1_ueq_rs2;
     wire rs1_ult_rs2;
     wire rs1_uge_rs2;
-    wire [`InstAddrBus] pc_plus_4;
-
-    assign pc_plus_4 = ex_pc + 64'h4;
-//TODO:放上面　＋　bypass_u\
-    wire [63: 0] real_data1, real_data2;
-    wire sel_rs1_forward, sel_rs2_forward;
-    wire [63: 0] rs1_forward_data, rs2_forward_data;
 
     wire bru_e;
     wire [`InstAddrBus] bru_addr;
 
+    assign rs1_seq_rs2 = ($signed(rf_rdata1) == $signed(rf_rdata2))?1:0; //== signed
+    assign rs1_slt_rs2 = ($signed(rf_rdata1)  < $signed(rf_rdata2))?1:0; //<  signed
+    assign rs1_sge_rs2 = ($signed(rf_rdata1) >= $signed(rf_rdata2))?1:0; //>= signed
 
-//TODO:exu很多input　opdata还不是real_data
-    assign real_data1 = sel_rs1_forward ? rs1_forward_data : rf_rdata1;
-    assign real_data2 = sel_rs2_forward ? rs2_forward_data : rf_rdata2;
-
-    assign rs1_seq_rs2 = ($signed(real_data1) == $signed(real_data2))?1:0; //== signed
-    assign rs1_slt_rs2 = ($signed(real_data1)  < $signed(real_data2))?1:0; //<  signed
-    assign rs1_sge_rs2 = ($signed(real_data1) >= $signed(real_data2))?1:0; //>= signed
-
-    assign rs1_ult_rs2 = (real_data1  < real_data2)?1:0; //<  unsigned
-    assign rs1_uge_rs2 = (real_data1 >= real_data2)?1:0; //>= unsigned
+    assign rs1_ult_rs2 = (rf_rdata1  < rf_rdata2)?1:0; //<  unsigned
+    assign rs1_uge_rs2 = (rf_rdata1 >= rf_rdata2)?1:0; //>= unsigned
 
     assign bru_e    = inst_jal
                     | inst_jalr   
@@ -478,12 +456,12 @@ module ysyx_2022040010_ex (
                     | inst_bgeu& rs1_uge_rs2;
 
 
-    assign bru_addr = inst_beq  ? {pc_plus_4 + imm_B_sign_extend  }
-                    : inst_bne  ? {pc_plus_4 + imm_B_sign_extend  }
-                    : inst_blt  ? {pc_plus_4 + imm_B_sign_extend  }
-                    : inst_bge  ? {pc_plus_4 + imm_B_sign_extend  }
-                    : inst_bltu ? {pc_plus_4 + imm_B_sign_extend  }
-                    : inst_bgeu ? {pc_plus_4 + imm_B_sign_extend  }
+    assign bru_addr = inst_beq  ? {ex_pc     + imm_B_sign_extend  }
+                    : inst_bne  ? {ex_pc     + imm_B_sign_extend  }
+                    : inst_blt  ? {ex_pc     + imm_B_sign_extend  }
+                    : inst_bge  ? {ex_pc     + imm_B_sign_extend  }
+                    : inst_bltu ? {ex_pc     + imm_B_sign_extend  }
+                    : inst_bgeu ? {ex_pc     + imm_B_sign_extend  }
                     : inst_jal  ? {ex_pc     + imm_J_sign_extend  }
                     : inst_jalr ? {{rf_rdata1 + imm_I_sign_extend} & ~64'b1  } : 64'b0;
 
@@ -518,13 +496,18 @@ module ysyx_2022040010_ex (
         rf_waddr,   // 68:64  69
         ex_result   // 63: 0  64
     };
+
+    wire rf_we_o;
+    assign rf_we_o = (rf_waddr == 5'b0) ? 1'b0 : rf_we;
+
     // bypass ex_to_id
     assign ex_to_rf_bus = {
-        rf_we,       //    69
+        rf_we_o,       //    69
         rf_waddr,   // 68:64
         ex_result   // 63: 0
     };
 
+    assign ex_to_id_for_stallload = {rf_waddr, dram_we, dram_e};
 
 endmodule
 

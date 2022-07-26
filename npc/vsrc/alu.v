@@ -74,7 +74,7 @@ module alu (
         .in_c   (adder_cin      ),
         .out_s  (adder_result   ),
         .out_c  (adder_cout     ),
-        .alu_32   (alu_32         )
+        .alu_32 (alu_32         )
     );
     
     // assign {adder_cout, adder_result} = adder_a + adder_b + adder_cin;
@@ -85,6 +85,7 @@ module alu (
         .shift_src      (alu_src1                   ),
         .shift_amount   (alu_src2                   ),
         .shift_op       ({op_sll, op_srl, op_sra}   ),
+        .alu_32         (alu_32                     ),
         .shift_result   (shift_result               )
     );
 

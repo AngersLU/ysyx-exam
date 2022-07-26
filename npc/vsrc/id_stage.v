@@ -7,8 +7,9 @@ module ysyx_2022040010_id (
     
     input wire [`StallBus] stall,
 
-    // output wire stallreq_for_load,
+    output wire stallreq_for_load,
     // output wire stallreq_for_bru,
+    input wire [ 6: 0] ex_to_id_for_stallload,
 
     input wire [`IF_TO_ID_BUS] if_to_id_bus,
 
@@ -30,28 +31,29 @@ module ysyx_2022040010_id (
     wire [4:0] ex_rf_waddr, mem_rf_waddr, wb_rf_waddr;
     wire [63:0] ex_rf_wdata, mem_rf_wdata, wb_rf_wdata;
 
-    reg flag;
     reg [31:0] buf_inst;
     wire stall_temp;
-    assign stall_temp = stall[1] | stall[2];   //stall for exe or load not flush
+    assign stall_temp = stall[1] | stall[0];   //stall for exe or load not flush
 
     wire [63: 0] next_pc;
+    reg flag;
 
     always @(posedge clk) begin
         if (rst) begin
             if_to_id_bus_r <= `IF_TO_ID_WD'b0;
-            flag <= 1'b0;
             buf_inst <= 32'b0;
+            flag <= 1'b0;
         end
         else if (stall[2] == 1'b1) begin //bru flush
             if_to_id_bus_r <= `IF_TO_ID_WD'b0;
             buf_inst <= 32'b0;
             flag <= 1'b0;
         end
-        else if (stall_temp && flag == 1'b0) begin //first stall
-            if_to_id_bus_r <= if_to_id_bus;
-            buf_inst <= isram_rdata;
-            flag <= 1'b1;
+        else if (stall[0]) begin
+            flag <= 1'b0;
+        end
+        else if (stall[1]) begin
+            flag <= 1'b1; 
         end
         else if (stall[5] == 1'b0) begin
             if_to_id_bus_r <= if_to_id_bus;
@@ -61,7 +63,7 @@ module ysyx_2022040010_id (
         else begin
             if_to_id_bus_r <= if_to_id_bus;
             buf_inst <= isram_rdata;
-            flag <= 1'b0;
+            flag <= 1'b0; 
         end
     end
 
@@ -70,11 +72,6 @@ module ysyx_2022040010_id (
     //buf_inst bounce point of brunch instruction ?
     //TODO: need to add code to make buf_inst true instruction
     assign inst_i = ce ? buf_inst : 32'b0;
-    // assign inst_i = ce ? flag ? buf_inst : isram_rdata : 32'b0;
-
-
-
-
 
 //　TODO:replace of bypass
     assign {
@@ -242,7 +239,7 @@ module ysyx_2022040010_id (
     assign inst_andi    =   op_d[7'b0010_011] & func3_d[3'b111]; 
     assign inst_xor     =   op_d[7'b0110_011] & func3_d[3'b100] & func7_d[7'b0000_000];
     assign inst_or      =   op_d[7'b0110_011] & func3_d[3'b110] & func7_d[7'b0000_000];
-    assign inst_and     =   op_d[7'b011_0011] & func3_d[3'b111] & func7_d[7'b0000_000];
+    assign inst_and     =   op_d[7'b0110_011] & func3_d[3'b111] & func7_d[7'b0000_000];
 //ALU-special   No operation processing and structure processing
     assign inst_ecall   =   op_d[7'b1110_011] & func3_d[3'b000] & ~inst_i[20];
     assign inst_ebreak  =   op_d[7'b1110_011] & func3_d[3'b000] &  inst_i[20];
@@ -313,10 +310,11 @@ module ysyx_2022040010_id (
 
     //rs2 to src2
     assign sel_alu_src2[0]  = inst_add   |   inst_addw   |  inst_sub    |   inst_subw  
-                            | inst_sll   |   inst_sllw   |  inst_slt    |   inst_sltu
-                            | inst_srl   |   inst_srlw   |  inst_sra    |   inst_sraw
+                            | inst_sll   |   inst_slt    |  inst_sltu
+                            | inst_srl   |   inst_sra
                             | inst_xor   |   inst_or     |  inst_and;
-    
+
+
     /// imm_sign_extend to src2 I-type
     assign sel_alu_src2[1]  = inst_addi  |   inst_addiw  |  inst_slti   |   inst_sltiu
                             | inst_xori  |   inst_ori    |  inst_andi   |   inst_lb
@@ -333,6 +331,8 @@ module ysyx_2022040010_id (
     // imm_sign_extend to src2 S-type
     assign sel_alu_src2[5]  = inst_sb    |   inst_sw     |   inst_sh     |   inst_sd;
          
+    // zextend(rs2[4:0])
+    assign sel_alu_src2[6]  = inst_sllw  |   inst_srlw   |  inst_sraw;
 
 //ALU-special
     assign op_sp    =   inst_ecall  | inst_ebreak;
@@ -396,7 +396,7 @@ module ysyx_2022040010_id (
 
     //regfile store enable
     assign rf_we    =   inst_lui    |   inst_auipc  |   inst_jal    |   inst_jalr
-                    |   inst_beq    |   inst_lb     |   inst_lh     |   inst_lw
+                    |   inst_lb     |   inst_lh     |   inst_lw
                     |   inst_lbu    |   inst_lhu    |   inst_addi   |   inst_slti
                     |   inst_sltiu  |   inst_xori   |   inst_ori    |   inst_andi
                     |   inst_slli   |   inst_srli   |   inst_srai   |   inst_add
@@ -510,7 +510,16 @@ module ysyx_2022040010_id (
         rf_rdata1,      //128
         rf_rdata2       //64
     };
+
     assign id_to_ex_bus = flag ? `ID_TO_EX_WD'b0 : id_to_ex_bus_temp;
+
+    wire [ 4: 0] ex_rd;
+    wire ex_dram_we;
+    wire ex_dram_e;
+    assign { ex_rd, ex_dram_we, ex_dram_e } = ex_to_id_for_stallload;
+
+    assign stallreq_for_load = (((ex_rd == rs1) | (ex_rd == rs2)) & ex_dram_e & ~ex_dram_we) ? 1'b1 : 1'b0;
+
 
 endmodule
 
