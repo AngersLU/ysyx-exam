@@ -12,6 +12,7 @@
         "paddr.h": "c",
         "isa.h": "c",
         "limits": "c",
-        "host.h": "c"
+        "host.h": "c",
+        "mmio.h": "c"
     }
 }
