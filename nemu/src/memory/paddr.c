@@ -50,7 +50,7 @@ word_t paddr_read(paddr_t addr, int len) {
 }
 
 void paddr_write(paddr_t addr, int len, word_t data) {
-  if(addr <= 0x800001b0 && (addr + len) > 0x800001b0) {
+  if(addr <= 0x800001b0 && (addr + len) >= 0x800001b0) {
     printf("nemu store pc 0x%08lx\n", cpu.pc);
     printf("nemu store val %08lx\n", data);  
   }
