@@ -27,7 +27,9 @@ module ysyx_2022040010_ex (
     output wire [63: 0] dsram_wdata,
     output wire [ 7: 0] dsram_sel,
     
-    input wire [63: 0] dsram_rdata
+    input wire  [63: 0] dsram_rdata,
+    output wire [63: 0] debug_ex_pc
+
 );
 
     reg [`ID_TO_EX_BUS] id_to_ex_bus_r;
@@ -112,7 +114,7 @@ module ysyx_2022040010_ex (
         rf_rdata2       //64
     } = id_to_ex_bus_r;
 
-
+    assign debug_ex_pc = ex_pc;
     
 
     wire [ 5:0] shamt;
@@ -204,9 +206,8 @@ module ysyx_2022040010_ex (
 // load instructions need to obtain data in the mem_stage
 // inessence, load in exu is an addition operation
     wire inst_sb, inst_sh,  inst_sw, inst_sd;
-    wire [ 3: 0]  sel_lsu_byte;
     wire [ 6: 0]  load_op;
-
+    wire [ 7: 0]  byte_sel;
 
     assign {
          inst_sb, inst_sh,  inst_sw, inst_sd
@@ -214,31 +215,31 @@ module ysyx_2022040010_ex (
 
     assign load_op = mem_op[10: 4];
 
-    assign sel_lsu_byte =   {lsu_64, lsu_32, lsu_16, lsu_8};
-    
+
+    decoder_3_8 decoder_3_8_u1(
+        .in     (ex_result[2:0] ),
+        .out    (byte_sel       )
+    );
+
 //mem_op == 1 & dsram_we == 0 dsram_addr != 64'b0 -> load operation
 
-//TODO:output
-    
-    //TODO: write_enable & lsu_byte
-    // software selects the bit width for storage
-    // dsram_we == 4'b0001  dsram_wdata[ 7: 0] 
-    // dsram_we == 4'b0010  dsram_wdata[16: 0]
-    // dsram_we == 4'b0100  dsram_wdata[31: 0]
-    // dsram_we == 4'b1000  dsram_wdata[64: 0]
+    wire [ 7: 0] ex_dsram_sel;
     assign dsram_e  =   dram_e;
     assign dsram_we =   dram_we;
     assign dsram_addr   =   ex_result;
-//TODO: modify
-    assign dsram_wdata  =   inst_sb ? { {56{1'b0}}, rf_rdata2[ 7: 0]} :
-                            inst_sh ? { {48{1'b0}}, rf_rdata2[15: 0]} :
-                            inst_sw ? { {32{1'b0}}, rf_rdata2[31: 0]} :
+
+    assign dsram_wdata  =   inst_sb ? {  8{rf_rdata2[ 7: 0]} } :
+                            inst_sh ? {  4{rf_rdata2[15: 0]} } :
+                            inst_sw ? {  2{rf_rdata2[31: 0]} } :
                             inst_sd ? rf_rdata2 : 64'b0;
 
-    assign dsram_sel    =   lsu_64  ? 8'b1111_1111 :
-                            lsu_32  ? 8'b0000_1111 :
-                            lsu_16  ? 8'b0000_0011 : 
-                            lsu_8   ? 8'b0000_0001 : 8'b0;
+    assign ex_dsram_sel    =    lsu_64  ? 8'b1111_1111 :
+                                lsu_32  ? { {4{byte_sel[4]}}, {4{byte_sel[0]}}} :
+                                lsu_16  ? { {2{byte_sel[6]}}, {2{byte_sel[4]}}, {2{byte_sel[2]}}, {2{byte_sel[0]}} } : 
+                                lsu_8   ? byte_sel  : 8'b0;
+
+    assign dsram_sel = ex_dsram_sel;
+
 // mul & div
     // mulw
     // mul (signed)rf_rdata1[31:0] * (signed)rf_rdata2[31:0] = result[31:0]  
@@ -489,7 +490,7 @@ module ysyx_2022040010_ex (
         ex_pc,      //136:73  141
         dram_e,     //    72  77
         dram_we,    //    71  76
-        sel_lsu_byte,//70:67  75
+        ex_dsram_sel, //7:0   8
         //0 form alu_res, 1 from ld_res
         sel_rf_res, //    66  71
         rf_we,      //    65  70

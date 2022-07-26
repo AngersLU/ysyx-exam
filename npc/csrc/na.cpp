@@ -28,7 +28,7 @@ void init_difftest(char *ref_so_file, long img_size, int port);
 
 VerilatedContext *contextp = NULL;
 VerilatedVcdC *tfp = NULL;
-static Vname *top;
+Vname *top;
 static vluint64_t main_time = 0;
 static const vluint64_t sim_time = 1000;
 

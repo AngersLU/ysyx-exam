@@ -20,21 +20,20 @@ module top (
 
     output wire [63: 0] debug_wb_pc,
     output wire [63: 0] debug_wb_npc,
+    output wire [63: 0] debug_ex_pc,
     output wire bubble
 );
 
     import "DPI-C" function void mem_read (
         input longint raddr, output longint rdata );
     import "DPI-C" function void mem_write (
-        input longint waddr, input longint wdata, input byte wmask ); 
-    import "DPI-C" function void pc_print(
-        input longint pc);
+        input longint waddr, input longint wdata, input byte wmask); 
+
     wire [63: 0] dsram_addr;
     wire [63: 0] dsram_wdata;
     wire [ 7: 0] dsram_sel;
     wire [63: 0] dsram_rdata;
     always @(*) begin
-        pc_print(debug_wb_pc);
         mem_read(dsram_addr, dsram_rdata);
         mem_write(dsram_addr, dsram_wdata, dsram_sel);
     end
@@ -53,7 +52,8 @@ module top (
         .dsram_rdata    (dsram_rdata ),
         .debug_wb_pc    (debug_wb_pc ),
         .debug_wb_npc   (debug_wb_npc),
-        .bubble         (bubble      )
+        .bubble         (bubble      ),
+        .debug_ex_pc    (debug_ex_pc )
     );
 
 

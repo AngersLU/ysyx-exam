@@ -47,7 +47,7 @@ module ysyx_2022040010_mem (
     wire [63: 0] mem_pc;
     wire dram_e;
     wire dram_we;
-    wire [ 3: 0] sel_lsu_byte;
+    wire [ 7: 0] ex_dsram_sel;
     wire sel_rf_sel;
     wire rf_we;
     wire [ 4: 0] rf_waddr;
@@ -68,7 +68,7 @@ module ysyx_2022040010_mem (
         mem_pc,      //136:73 
         dram_e,     //    72
         dram_we,    //    71 
-        sel_lsu_byte,//70:67
+        ex_dsram_sel,
         //0 form alu_res, 1 from ld_res
         sel_rf_res, //    66
         rf_we,      //    65
@@ -91,10 +91,24 @@ module ysyx_2022040010_mem (
     wire [63: 0] mem_result;
     wire [63: 0] rf_wdata;
 
-    assign b_data = sel_lsu_byte[0] ? dsram_rdata[ 7: 0] :  8'b0;
-    assign h_data = sel_lsu_byte[1] ? dsram_rdata[15: 0] : 16'b0;
-    assign w_data = sel_lsu_byte[2] ? dsram_rdata[31: 0] : 32'b0;
-    assign d_data = sel_lsu_byte[3] ? dsram_rdata[63: 0] : 64'b0;
+    assign b_data = ex_dsram_sel[0] ? dsram_rdata[ 7: 0] : 
+                    ex_dsram_sel[1] ? dsram_rdata[15: 8] :
+                    ex_dsram_sel[2] ? dsram_rdata[23:16] :
+                    ex_dsram_sel[3] ? dsram_rdata[31:24] :
+                    ex_dsram_sel[4] ? dsram_rdata[39:32] :
+                    ex_dsram_sel[5] ? dsram_rdata[47:40] :
+                    ex_dsram_sel[6] ? dsram_rdata[55:48] :
+                    ex_dsram_sel[7] ? dsram_rdata[63:56] : 8'b0;
+
+    assign h_data = ex_dsram_sel[0] ? dsram_rdata[15: 0] :
+                    ex_dsram_sel[2] ? dsram_rdata[31:16] :
+                    ex_dsram_sel[4] ? dsram_rdata[47:32] :
+                    ex_dsram_sel[6] ? dsram_rdata[63:48] : 16'b0;
+
+    assign w_data = ex_dsram_sel[0] ? dsram_rdata[31: 0] :
+                    ex_dsram_sel[4] ? dsram_rdata[63:32] : 32'b0;
+
+    assign d_data = ex_dsram_sel[0] ? dsram_rdata : 64'b0;
 
     assign mem_result = inst_lb     ?   { {56{b_data[7]}} , b_data} :
                         inst_lbu    ?   { {56'b0},b_data } :
@@ -104,7 +118,7 @@ module ysyx_2022040010_mem (
                         inst_lwu    ?   { {32'b0},w_data } :
                         inst_ld     ?   d_data  : 64'b0;
 
-    assign rf_wdata = sel_rf_res & dram_e ? mem_result : ex_result;
+    assign rf_wdata = (sel_rf_res & dram_e) ? mem_result : ex_result;
 
     assign mem_to_wb_bus = {
         sp_bus,

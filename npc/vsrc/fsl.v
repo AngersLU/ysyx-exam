@@ -21,7 +21,8 @@ module ysyx_2022040010_fsl (
 
     output wire [63: 0] debug_wb_pc,
     output wire [63: 0] debug_wb_npc,
-    output wire bubble
+    output wire bubble,
+    output wire [63: 0] debug_ex_pc
 
 );
 
@@ -87,7 +88,8 @@ module ysyx_2022040010_fsl (
         .dsram_addr         (dsram_addr         ),
         .dsram_wdata        (dsram_wdata        ),
         .dsram_sel          (dsram_sel          ),
-        .dsram_rdata        (dsram_rdata_v      )
+        .dsram_rdata        (dsram_rdata_v      ),
+        .debug_ex_pc        (debug_ex_pc        )
     );
 
     ysyx_2022040010_mem memu(
