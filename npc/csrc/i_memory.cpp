@@ -91,6 +91,9 @@ uint64_t pmem_read(paddr_t addr, int len)
 
 void pmem_write(paddr_t addr, int len, uint64_t data)
 { 
+  if(addr <= 0x80008FD9 && (addr + len) > 0x80008FD9) {
+    printf(" store val %08lx\n", data);  
+  }
   host_write(guest_to_host(addr), len, data);
 
 }

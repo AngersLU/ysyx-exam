@@ -94,7 +94,7 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
 
 
 extern "C" void pc_print(long long pc) {
-  printf("pc_reg:0x%08llx\n", pc);
+  printf(" store pc 0x%08llx\n", pc);
 }
 
 //pc_print use example

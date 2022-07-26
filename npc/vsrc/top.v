@@ -27,11 +27,14 @@ module top (
         input longint raddr, output longint rdata );
     import "DPI-C" function void mem_write (
         input longint waddr, input longint wdata, input byte wmask ); 
+    import "DPI-C" function void pc_print(
+        input longint pc);
     wire [63: 0] dsram_addr;
     wire [63: 0] dsram_wdata;
     wire [ 7: 0] dsram_sel;
     wire [63: 0] dsram_rdata;
     always @(*) begin
+        pc_print(debug_wb_pc);
         mem_read(dsram_addr, dsram_rdata);
         mem_write(dsram_addr, dsram_wdata, dsram_sel);
     end
