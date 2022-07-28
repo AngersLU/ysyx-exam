@@ -88,13 +88,13 @@ module ysyx_2022040010_fsl (
         .dsram_addr         (dsram_addr         ),
         .dsram_wdata        (dsram_wdata        ),
         .dsram_sel          (dsram_sel          ),
-        .dsram_rdata        (dsram_rdata_v      ),
         .debug_ex_pc        (debug_ex_pc        )
     );
 
     ysyx_2022040010_mem memu(
         .clk                (clk                ),
         .rst                (rst                ),
+        .dsram_rdata        (dsram_rdata_v      ),
         .ex_to_mem_bus      (ex_to_mem_bus      ),
         .mem_to_wb_bus      (mem_to_wb_bus      ),
         .mem_to_rf_bus      (mem_to_rf_bus      )

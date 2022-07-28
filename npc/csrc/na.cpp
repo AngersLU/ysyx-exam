@@ -62,13 +62,11 @@ extern "C" void set_gpr_ptr(const svOpenArrayHandle r) {
 
 // DPI-C
 extern "C" void mem_read(long long raddr, long long *rdata) { 
-  if(raddr<0x88000000 && raddr > 0x80000000 ){
-    if( top->dsram_e && !top->dsram_we ){
+  if(raddr<0x88000000 && raddr >= 0x80000000 ){
     // 总是读取地址为`raddr & ~0x7ull`的8字节返回给`rdata`
-     // pmem_read(      *(uint64_t *)(raddr & ~0x7ull) ;//;
-      // *rdata = pmem_read((raddr & ~0x7ull), 8) >> ((raddr & 0x7ull) * 8);
+    // pmem_read(      *(uint64_t *)(raddr & ~0x7ull) ;//;
+   // *rdata = pmem_read((raddr & ~0x7ull), 8) >> ((raddr & 0x7ull) * 8);
     *rdata = pmem_read((raddr & ~0x7ull), 8);
-    }
   }
 }
 
@@ -76,20 +74,20 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
   // 总是往地址为`waddr & ~0x7ull`的8字节按写掩码`wmask`写入`wdata`
   // `wmask`中每比特表示`wdata`中1个字节的掩码,
   // 如`wmask = 0x3`代表只写入最低2个字节, 内存中的其它字节保持不变
-  if(waddr<0x88000000 && waddr > 0x80000000 ){
-    if( top->dsram_e && top->dsram_we ){
-      long long mask = 0;
-      for(int i = 0; i < 8; i++){
-        if((wmask >> i) & 0x01){
-          long long f = 0xff; 
-          f = f << (i * 8);
-          mask |= f;
-        }
+  if(waddr<0x88000000 && waddr >= 0x80000000 ){
+    long long mask = 0;
+    for(int i = 0; i < 8; i++){
+      if((wmask >> i) & 0x01){
+      long long f = 0xff; 
+        f = f << (i * 8);
+        mask |= f;
       }
-      mask = ~mask;
-      long long wdata_z = wdata | (pmem_read((waddr & ~0x7ull), 8) & mask);
-      pmem_write((waddr & ~0x7ull), 8, wdata_z);
     }
+    wdata = wdata & mask;
+    mask = ~mask;
+    long long wdata_z = wdata | (pmem_read((waddr & ~0x7ull), 8) & mask);
+    // printf("wdata_z = %llx\n", wdata_z);
+    pmem_write((waddr & ~0x7ull), 8, wdata_z);
   }
 }
 

@@ -4,7 +4,7 @@
 `timescale 1ns/1ns
 
 module ysyx_2022040010_shift (
-    input wire[63:0] shift_src, //src1
+    input wire[63:0] shift_operand, //src1
     input wire[63:0] shift_amount, //src2
     input wire[2:0] shift_op, //shift operation type : logic left/right  arithmetic right
     input wire alu_32,
@@ -19,7 +19,9 @@ module ysyx_2022040010_shift (
     wire [63:0] sll_res; //shift left logic
     wire [63:0] shift_src_temp;
     wire [63:0] shift_result_temp;
+    wire [63:0] shift_src;
 
+    assign shift_src = alu_32 ? {32'b0, shift_operand[31:0]} : shift_operand;
     assign op_srl = shift_op[2] ? 1 : 0; // judge whether to shift left
     assign shift_src_temp= op_srl ? {   //if shift left , reverse the order
                                         shift_src[ 0], shift_src[ 1], shift_src[ 2], shift_src[ 3], shift_src[ 4], shift_src[ 5], shift_src[ 6],shift_src[ 7],
@@ -50,7 +52,7 @@ module ysyx_2022040010_shift (
                                 shift_op[0] ? sra_res : 64'b0 ;
                                                         //TODO: I don't know if this assign is correct 
 
-    assign shift_result = alu_32 ? {32'b0, shift_result_temp[31:0]} : shift_result_temp;
+    assign shift_result = alu_32 ? { {32{shift_result_temp[31]}}, shift_result_temp[31:0]} : shift_result_temp;
 
 endmodule
 

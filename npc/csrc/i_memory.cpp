@@ -92,7 +92,7 @@ uint64_t pmem_read(paddr_t addr, int len)
 
 void pmem_write(paddr_t addr, int len, uint64_t data)
 { 
-  if(addr <= 0x800001b0 && (addr + len) >= 0x800001b0) {
+  if(addr == 0x800001b0 || (addr + len) == 0x800001b0) {
     printf(" store pc 0x%08lx\n", top->debug_ex_pc);
     printf(" store val %08lx\n", data);  
   }

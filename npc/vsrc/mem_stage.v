@@ -15,7 +15,7 @@ module ysyx_2022040010_mem (
     // input wire [`StallBus] stall,
 
 //this input data depend on C++ code judgement
-    // input wire [63: 0] dsram_rdata,
+    input wire [63: 0] dsram_rdata,
 
     input  wire [`EX_TO_MEM_BUS] ex_to_mem_bus, 
 
@@ -42,7 +42,6 @@ module ysyx_2022040010_mem (
         end
     end
 
-    wire [63: 0] dsram_rdata;
     wire [ 6: 0] load_op;
     wire [63: 0] mem_pc;
     wire dram_e;
@@ -62,7 +61,6 @@ module ysyx_2022040010_mem (
     assign  {
         sp_bus,     //2
         op_sp,      //1
-        dsram_rdata,
         load_op,     //143:137
         next_pc,
         mem_pc,      //136:73 

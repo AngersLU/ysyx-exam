@@ -11,8 +11,8 @@ module top (
     output wire [63: 0] isram_addr,
     input wire [31: 0] isram_rdata,
 
-    output wire dsram_e,
-    output wire dsram_we,
+    // output wire dsram_e,
+    // output wire dsram_we,
     // output wire [63: 0] dsram_addr,
     // output wire [63: 0] dsram_wdata,
     // output wire [ 7: 0] dsram_sel,
@@ -33,9 +33,15 @@ module top (
     wire [63: 0] dsram_wdata;
     wire [ 7: 0] dsram_sel;
     wire [63: 0] dsram_rdata;
-    always @(*) begin
-        mem_read(dsram_addr, dsram_rdata);
-        mem_write(dsram_addr, dsram_wdata, dsram_sel);
+    wire dsram_e;
+    wire dsram_we;
+    always @(posedge clk) begin
+        if(dsram_e & dsram_we ) begin
+            mem_write(dsram_addr, dsram_wdata, dsram_sel);
+        end
+        else if(dsram_e & ~dsram_we) begin
+            mem_read(dsram_addr, dsram_rdata);
+        end
     end
 
     ysyx_2022040010_fsl fslu (

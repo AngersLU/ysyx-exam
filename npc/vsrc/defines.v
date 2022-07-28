@@ -16,14 +16,14 @@
 `define IF_TO_ID_BUS    128 :0
 `define ID_TO_EX_BUS    365:0
 `define BR_TO_IF_BUS    64 :0
-`define EX_TO_MEM_BUS   282:0
+`define EX_TO_MEM_BUS   218:0
 `define MEM_TO_WB_BUS   200:0
 `define SP_BUS          1 : 0
 
 `define IF_TO_ID_WD     129
 `define ID_TO_EX_WD     366
 `define BR_TO_IF_WD     65   
-`define EX_TO_MEM_WD    283
+`define EX_TO_MEM_WD    219
 `define MEM_TO_WB_WD    201
 `define SP_WD           2
 

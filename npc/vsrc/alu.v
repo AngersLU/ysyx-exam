@@ -82,7 +82,7 @@ module alu (
 
 //shift
     ysyx_2022040010_shift   shift_u  (
-        .shift_src      (alu_src1                   ),
+        .shift_operand  (alu_src1                   ),
         .shift_amount   (alu_src2                   ),
         .shift_op       ({op_sll, op_srl, op_sra}   ),
         .alu_32         (alu_32                     ),
@@ -90,22 +90,32 @@ module alu (
     );
 
     assign slt_result[63:1] = 63'b0;
-    assign slt_result[0] = (alu_src1[63] & ~alu_src1[63])
-                        |  (~(alu_src1[63]^alu_src2[63] & adder_result[63]));
+    assign slt_result[0] = (alu_src1[63] & ~alu_src2[63])
+                        |  (~(alu_src1[63]^alu_src2[63]) & adder_result[63]);
 
     assign sltu_result[63: 1] = 63'b0;
     assign sltu_result[0] = ~adder_cout;
     
 
-    assign {alu_result, alu_over}   =   {({64{op_add | op_sub           }} & add_sub_auipc_result), 1'b1}
-                                    |   {({64{op_sll | op_srl | op_sra  }} & shift_result        ), 1'b1}
-                                    |   {({64{op_and                    }} & and_result          ), 1'b1}
-                                    |   {({64{op_or                     }} & or_result           ), 1'b1}
-                                    |   {({64{op_xor                    }} & xor_result          ), 1'b1}
-                                    |   {({64{op_slt                    }} & slt_result          ), 1'b1}
-                                    |   {({64{op_sltu                   }} & sltu_result         ), 1'b1}
-                                    |   {({64{op_nop                    }} & nop_result          ), 1'b1};
-    
+    assign  alu_result  =   ({64{op_add | op_sub           }} & add_sub_auipc_result)
+                        |   ({64{op_sll | op_srl | op_sra  }} & shift_result        )
+                        |   ({64{op_and                    }} & and_result          )
+                        |   ({64{op_or                     }} & or_result           )
+                        |   ({64{op_xor                    }} & xor_result          )
+                        |   ({64{op_slt                    }} & slt_result          )
+                        |   ({64{op_sltu                   }} & sltu_result         )
+                        |   ({64{op_nop                    }} & nop_result          );
+
+    assign alu_over     =   (op_add | op_sub) ? 1'b1 :
+                            (op_sll | op_srl | op_sra) ? 1'b1 :
+                            op_and ? 1'b1 :
+                            op_or  ? 1'b1 :
+                            op_xor ? 1'b1 :
+                            op_slt ? 1'b1 :
+                            op_sltu? 1'b1 :
+                            op_nop ? 1'b1 : 1'b0;
+
+
 
 endmodule
 

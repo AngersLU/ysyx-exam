@@ -27,7 +27,6 @@ module ysyx_2022040010_ex (
     output wire [63: 0] dsram_wdata,
     output wire [ 7: 0] dsram_sel,
     
-    input wire  [63: 0] dsram_rdata,
     output wire [63: 0] debug_ex_pc
 
 );
@@ -277,7 +276,7 @@ module ysyx_2022040010_ex (
     ysyx_2022040010_mul mul_ex(
         .clk            (clk            ),
         .ret            (rst            ),
-        .mul_32         (mul_32         ),  
+        // .mul_32         (mul_32         ),  //don't use
         .mul_ina_s      (mul_ina_s      ),
         .ina            (rf_rdata1      ),
         .mul_inb_s      (mul_inb_s      ),
@@ -327,10 +326,10 @@ module ysyx_2022040010_ex (
     wire [63:0] div_data2_32;
     wire [63:0] div_data2_i;
 
-    assign div_data1_32 = div_signed ? { {32{div_data1[31]}}, div_data1[31:0]} : { {32{1'b0}}, div_data1[31:0]};
-    assign div_data1_i = div_32 ? div_data1_32 : div_data1;
-    assign div_data2_32 = div_signed ? { {32{div_data2[31]}}, div_data2[31:0]} : { {32{1'b0}}, div_data2[31:0]};
-    assign div_data2_i = div_32 ? div_data2_32 : div_data2;
+    assign div_data1_32 = { {32{1'b0}}, div_data1[31:0]};
+    assign div_data1_i  = div_32 ? div_data1_32 : div_data1;
+    assign div_data2_32 = { {32{1'b0}}, div_data2[31:0]};
+    assign div_data2_i  = div_32 ? div_data2_32 : div_data2;
 
     ysyx_2022040010_div div_ex(
         .rst            (rst        ),
@@ -352,6 +351,7 @@ module ysyx_2022040010_ex (
     wire sel_div_unsigned;
     assign sel_div_unsigned =   inst_remu   |   inst_remuw  |   inst_divu   
                             |   inst_divuw;   
+                            
 
     always @ ( *) begin
         if ( rst) begin
@@ -484,7 +484,6 @@ module ysyx_2022040010_ex (
     assign ex_to_mem_bus = {
         sp_bus,      //ecall / ebreak 2
         alu_op[0],  //op_sp          1
-        dsram_rdata, 
         load_op,    //143:137 148
         real_npc,
         ex_pc,      //136:73  141
