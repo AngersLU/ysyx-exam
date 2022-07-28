@@ -13,9 +13,11 @@
 #include "svdpi.h"
 #include "Vtop__Dpi.h"
 #include "verilated_dpi.h"
+#include <time.h>
 
 #define CONFIG_MBASE 0x80000000
 #define CONFIG_MSIZE 0x8000000
+#define CONFIG_RTC_MMIO 0xa0000048
 
 typedef uint64_t paddr_t;
 
@@ -60,6 +62,8 @@ extern "C" void set_gpr_ptr(const svOpenArrayHandle r) {
 }
 
 
+
+uint64_t rtc_io_us, rtc_io_ms;
 // DPI-C
 extern "C" void mem_read(long long raddr, long long *rdata) { 
   if(raddr<0x88000000 && raddr >= 0x80000000 ){
@@ -68,13 +72,19 @@ extern "C" void mem_read(long long raddr, long long *rdata) {
    // *rdata = pmem_read((raddr & ~0x7ull), 8) >> ((raddr & 0x7ull) * 8);
     *rdata = pmem_read((raddr & ~0x7ull), 8);
   }
+  if (waddr == CONFIG_RTC_MMIO) {
+    uint64_t us = get_time();
+    rtc_io_us = (uint32_t)us;
+    rtc_io_ms = us >> 32;
+    *rdata = rtc_io_us;
+  }
 }
 
 extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
   // 总是往地址为`waddr & ~0x7ull`的8字节按写掩码`wmask`写入`wdata`
   // `wmask`中每比特表示`wdata`中1个字节的掩码,
   // 如`wmask = 0x3`代表只写入最低2个字节, 内存中的其它字节保持不变
-  if(waddr<0x88000000 && waddr >= 0x80000000 ){
+  if(waddr<0x88000000 && waddr >= 0x80000000 ) {
     long long mask = 0;
     for(int i = 0; i < 8; i++){
       if((wmask >> i) & 0x01){
@@ -89,6 +99,8 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
     // printf("wdata_z = %llx\n", wdata_z);
     pmem_write((waddr & ~0x7ull), 8, wdata_z);
   }
+  if (waddr == ) printf(" \n", );
+
 }
 
 

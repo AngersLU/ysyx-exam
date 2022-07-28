@@ -13,6 +13,9 @@
         "isa.h": "c",
         "limits": "c",
         "host.h": "c",
-        "mmio.h": "c"
+        "mmio.h": "c",
+        "map.h": "c",
+        "common.h": "c",
+        "debug.h": "c"
     }
 }

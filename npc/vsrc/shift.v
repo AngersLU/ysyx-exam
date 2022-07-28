@@ -20,6 +20,9 @@ module ysyx_2022040010_shift (
     wire [63:0] shift_src_temp;
     wire [63:0] shift_result_temp;
     wire [63:0] shift_src;
+    wire [63:0] sraw_mask;
+    wire [63:0] sraw_res;
+    wire [63:0] sra_res_temp;
 
     assign shift_src = alu_32 ? {32'b0, shift_operand[31:0]} : shift_operand;
     assign op_srl = shift_op[2] ? 1 : 0; // judge whether to shift left
@@ -35,8 +38,11 @@ module ysyx_2022040010_shift (
                                     }: shift_src[63:0];
     assign shift_res = shift_src_temp[63:0] >> shift_amount[63:0];
     assign sra_mask = ~(64'hffffffffffff >> shift_amount[63:0]);
+    assign sraw_mask = ~(64'h0000_0000_ffff_ffff >> shift_amount[63:0]) & 64'h0000_0000_ffff_ffff;
     assign srl_res  = shift_res;  //shift right logic
-    assign sra_res  = ( {64{shift_src[63]}} & sra_mask ) | shift_res; //shift right arithmetic
+    assign sraw_res = ({32'b0, {32{shift_src[31]}} } & sraw_mask) | shift_res;
+    assign sra_res_temp  = ( {64{shift_src[63]}} & sra_mask ) | shift_res; //shift right arithmetic
+    assign sra_res = alu_32 ? sraw_res : sra_res_temp;
     assign sll_res = {  shift_res[ 0], shift_res[ 1],shift_res[ 2],shift_res[ 3],shift_res[ 4],shift_res[ 5],shift_res[ 6],shift_res[ 7],
                         shift_res[ 8], shift_res[ 9],shift_res[10],shift_res[11],shift_res[12],shift_res[13],shift_res[14],shift_res[15], 
                         shift_res[16], shift_res[17],shift_res[18],shift_res[19],shift_res[20],shift_res[21],shift_res[22],shift_res[23],
