@@ -112,7 +112,9 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
   }
   if (waddr == CONFIG_SERIAL_MMIO ) {
     // printf("1");
-    serial_io_input((uint8_t)wdata);
+    putc(1, stderr);
+
+    // putc((char)wdata, stderr);
     // serial_io_output();
   }
 
@@ -155,7 +157,7 @@ static int parse_args(int argc, char *argv[]) {
 void sim_exit() {
   tfp->close();
   delete top;
-  delete contextp;
+  // delete contextp;
 }
 
 void exit_now() {
@@ -168,8 +170,8 @@ void sim_init() {
   top = new Vtop;
   tfp = new VerilatedVcdC;
 
-  top->trace(tfp, 99);
-  tfp->open("wave.vcd");
+  // top->trace(tfp, 99);
+  // tfp->open("wave.vcd");
 }
 
 // CMD
@@ -210,7 +212,7 @@ static int cmd_c()
               // sp regs are used for addtion
               if(bubble != 1) {
                 // printf("     pc 0x%08lx \n", pc);
-                difftest_step(pc, npc);
+                // difftest_step(pc, npc);
               }
             }
           }
