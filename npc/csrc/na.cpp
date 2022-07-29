@@ -84,7 +84,7 @@ extern "C" void mem_read(long long raddr, long long *rdata) {
   }
   if (raddr == CONFIG_RTC_MMIO) {
     *rdata = get_time();
-    // putc(get_time() , stderr);
+    putc(get_time() , stderr);
     // printf("now time: %c\n", get_time());
     // if((get_time() % 1000000) == 0) cout << get_time()/100000 << endl;
     // cout << get_time() << endl;
@@ -113,8 +113,7 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
   if (waddr == CONFIG_SERIAL_MMIO ) {
     // printf("1");
     // putc(1, stderr);
-
-    putc((char)wdata, stderr);
+    serial_io_input(wdata);
     // serial_io_output();
   }
 

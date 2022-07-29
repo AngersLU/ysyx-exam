@@ -36,8 +36,8 @@ static void serial_putc(char ch) {
   // cout << serial_base[0] << endl;
 }
 
-void serial_io_input(uint8_t wdata) {
-  putc(wdata, stderr);
+void serial_io_input(long long wdata) {
+  putc((uint8_t)wdata, stderr);
   
   // serial_base = (uint8_t *)wdata;
 
@@ -45,15 +45,6 @@ void serial_io_input(uint8_t wdata) {
 
 }
 
-
-// static void rtc_io_handler(uint32_t offset, int len, bool is_write) {
-//   assert(offset == 0 || offset == 4);
-//   if (!is_write && offset == 0) {
-//     uint64_t us = get_time();
-//     rtc_port_base[0] = (uint32_t)us;
-//     rtc_port_base[1] = us >> 32;
-//   }
-// }
 
 
 
