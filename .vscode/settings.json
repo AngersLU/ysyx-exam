@@ -33,6 +33,9 @@
         "lkc.h": "c",
         "expr.h": "c",
         "stdint.h": "c",
-        "nemu.h": "c"
+        "nemu.h": "c",
+        "time.h": "c",
+        "alarm.h": "c",
+        "map.h": "c"
     }
 }

@@ -13,11 +13,12 @@
 #include "svdpi.h"
 #include "Vtop__Dpi.h"
 #include "verilated_dpi.h"
-#include <time.h>
+#include "device.h"
 
 #define CONFIG_MBASE 0x80000000
 #define CONFIG_MSIZE 0x8000000
 #define CONFIG_RTC_MMIO 0xa0000048
+#define CONFIG_SERIAL_MMIO 0xa00003f8
 
 typedef uint64_t paddr_t;
 
@@ -36,6 +37,8 @@ static const vluint64_t sim_time = 1000;
 
 using namespace std;
 bool is_exit = false;
+bool isebreak = false;
+uint64_t *cpu_gpr = NULL;
 
 struct CPU_state
 {
@@ -50,20 +53,26 @@ struct CPU_state
 
 
 // DPI-C
-bool isebreak = false;
 extern "C" void ebreak() {
   isebreak = true;
 }
 
-uint64_t *cpu_gpr = NULL;
 extern "C" void set_gpr_ptr(const svOpenArrayHandle r) {
   cpu_gpr = (uint64_t *)(((VerilatedDpiOpenVar *)r)->datap());
   //cpuu.pc = top->pc;
 }
 
+extern "C" void mmio_read(paddr_t addr, int len) {
+  //对mmio的两个外设进行读取
+  return map_read(addr, len, fetch_mmio_map(addr));
+}
+
+extern "C" void mmio_write() {
+  //对mmio的两个外设进行写入
+  map_write(addr, len, data, fetch_mmio_mapp(addr));
+}
 
 
-uint64_t rtc_io_us, rtc_io_ms;
 // DPI-C
 extern "C" void mem_read(long long raddr, long long *rdata) { 
   if(raddr<0x88000000 && raddr >= 0x80000000 ){
@@ -72,11 +81,8 @@ extern "C" void mem_read(long long raddr, long long *rdata) {
    // *rdata = pmem_read((raddr & ~0x7ull), 8) >> ((raddr & 0x7ull) * 8);
     *rdata = pmem_read((raddr & ~0x7ull), 8);
   }
-  if (waddr == CONFIG_RTC_MMIO) {
-    uint64_t us = get_time();
-    rtc_io_us = (uint32_t)us;
-    rtc_io_ms = us >> 32;
-    *rdata = rtc_io_us;
+  if (raddr == CONFIG_RTC_MMIO) {
+    *rdata = get_time();
   }
 }
 
@@ -99,7 +105,10 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
     // printf("wdata_z = %llx\n", wdata_z);
     pmem_write((waddr & ~0x7ull), 8, wdata_z);
   }
-  if (waddr == ) printf(" \n", );
+  if (waddr == CONFIG_SERIAL_MMIO ) {
+    // serial_io_handler();
+    printf("%c", pmem_read(CONFIG_MBASE, 1));
+  }
 
 }
 
@@ -116,7 +125,6 @@ extern "C" void pc_print(long long pc) {
 // end
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
 // read .bin
 static char *img_file = NULL;
 static int parse_args(int argc, char *argv[]) {
