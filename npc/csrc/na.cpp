@@ -112,9 +112,9 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
   }
   if (waddr == CONFIG_SERIAL_MMIO ) {
     // printf("1");
-    putc(1, stderr);
+    // putc(1, stderr);
 
-    // putc((char)wdata, stderr);
+    putc((char)wdata, stderr);
     // serial_io_output();
   }
 
