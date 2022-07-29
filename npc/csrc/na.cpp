@@ -84,10 +84,6 @@ extern "C" void mem_read(long long raddr, long long *rdata) {
   }
   if (raddr == CONFIG_RTC_MMIO) {
     *rdata = get_time();
-    putc(get_time() , stderr);
-    // printf("now time: %c\n", get_time());
-    // if((get_time() % 1000000) == 0) cout << get_time()/100000 << endl;
-    // cout << get_time() << endl;
   }
 }
 
@@ -111,10 +107,7 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
     pmem_write((waddr & ~0x7ull), 8, wdata_z);
   }
   if (waddr == CONFIG_SERIAL_MMIO ) {
-    // printf("1");
-    // putc(1, stderr);
     serial_io_input(wdata);
-    // serial_io_output();
   }
 
 }
@@ -169,8 +162,8 @@ void sim_init() {
   top = new Vtop;
   tfp = new VerilatedVcdC;
 
-  // top->trace(tfp, 99);
-  // tfp->open("wave.vcd");
+  top->trace(tfp, 99);
+  tfp->open("wave.vcd");
 }
 
 // CMD
@@ -198,20 +191,17 @@ static int cmd_c()
       top->rst = 0; top->eval();
       
       if (main_time % 10 == 1) {
-        //printf("pc:0x%lx, instr:0x%08lx\n", top->pc, pmem_read(top->pc, 4));
         if(top->clk == 1) {
           if (top->isram_e == 1) {
-            // printf("top->isram_addr: %08lx \n", top->isram_addr);
             top->isram_rdata = pmem_read(top->isram_addr, 4);
           }
-          //printf("pc:0x%lx, bubble:0x%08lx\n", top->difftest_pc, top->bubble);
           if(main_time >= 60) {
             if(pc >= CONFIG_MBASE && pc <= (CONFIG_MBASE + CONFIG_MSIZE) ) {
               for(int i = 0; i < 32; i++) cpuu.gpr[i] = cpu_gpr[i];
               // sp regs are used for addtion
               if(bubble != 1) {
                 // printf("     pc 0x%08lx \n", pc);
-                // difftest_step(pc, npc);
+                difftest_step(pc, npc);
               }
             }
           }
