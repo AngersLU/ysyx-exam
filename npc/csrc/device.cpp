@@ -13,17 +13,17 @@ static uint8_t *serial_base = NULL;
 static uint64_t get_time_internal() {
   struct timeval now;
   gettimeofday(&now, NULL);
-  uint64_t us = now.tv_sec;
+  uint64_t us = now.tv_sec * 1000000 + now.tv_usec;
   // uint64_t us = now.tv_usec;
   // putc( now.tv_sec, stderr);
   return us;
 }
 
-uint64_t get_time() {
+uint32_t get_time() {
   if (boot_time == 0) boot_time = get_time_internal();
   uint64_t now = get_time_internal();
     // cout<< get_time <<endl;
-  return now - boot_time;
+  return (uint32_t)(now - boot_time);
 }
 
 static void serial_putc(char ch) {
