@@ -15,6 +15,7 @@
 #include "verilated_dpi.h"
 #include "device.h"
 
+using namespace std;
 #define CONFIG_MBASE 0x80000000
 #define CONFIG_MSIZE 0x8000000
 #define CONFIG_RTC_MMIO 0xa0000048
@@ -35,7 +36,7 @@ Vname *top;
 static vluint64_t main_time = 0;
 static const vluint64_t sim_time = 1000;
 
-using namespace std;
+
 bool is_exit = false;
 bool isebreak = false;
 uint64_t *cpu_gpr = NULL;
@@ -62,15 +63,15 @@ extern "C" void set_gpr_ptr(const svOpenArrayHandle r) {
   //cpuu.pc = top->pc;
 }
 
-extern "C" void mmio_read(paddr_t addr, int len) {
-  //对mmio的两个外设进行读取
-  return map_read(addr, len, fetch_mmio_map(addr));
-}
+// extern "C" void mmio_read(paddr_t addr, int len) {
+//   //对mmio的两个外设进行读取
+//   return map_read(addr, len, fetch_mmio_map(addr));
+// }
 
-extern "C" void mmio_write() {
-  //对mmio的两个外设进行写入
-  map_write(addr, len, data, fetch_mmio_mapp(addr));
-}
+// extern "C" void mmio_write() {
+//   //对mmio的两个外设进行写入
+//   map_write(addr, len, data, fetch_mmio_mapp(addr));
+// }
 
 
 // DPI-C
@@ -83,6 +84,10 @@ extern "C" void mem_read(long long raddr, long long *rdata) {
   }
   if (raddr == CONFIG_RTC_MMIO) {
     *rdata = get_time();
+    // putc(get_time() , stderr);
+    // printf("now time: %c\n", get_time());
+    // if((get_time() % 1000000) == 0) cout << get_time()/100000 << endl;
+    // cout << get_time() << endl;
   }
 }
 
@@ -106,8 +111,9 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
     pmem_write((waddr & ~0x7ull), 8, wdata_z);
   }
   if (waddr == CONFIG_SERIAL_MMIO ) {
-    // serial_io_handler();
-    printf("%c", pmem_read(CONFIG_MBASE, 1));
+    // printf("1");
+    serial_io_input((uint8_t)wdata);
+    // serial_io_output();
   }
 
 }
@@ -204,7 +210,7 @@ static int cmd_c()
               // sp regs are used for addtion
               if(bubble != 1) {
                 // printf("     pc 0x%08lx \n", pc);
-                difftest_step(pc, npc);
+                // difftest_step(pc, npc);
               }
             }
           }

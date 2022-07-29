@@ -1,51 +1,59 @@
-#include <time.h>
+#include <sys/time.h>
 #include <iostream>
+#include <cassert>
 #include <stdio.h>
+using namespace std;
 
 static uint64_t boot_time = 0;
-#define CONFIG_SERIAL_MMIO 0xa00003f8
 
-static uint32_t *rtc_poart_base = NULL;
+// static uint32_t *rtc_poart_base = NULL;
+static uint8_t *serial_base = NULL;
+ 
 
 static uint64_t get_time_internal() {
-  struct timespec now;
-  clock_gettime(CLOCK_MONOTONIC_COARSE, &now);
-  uint64_t us = now.tv_sec * 1000000 + now.tv_nsec / 1000;
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  uint64_t us = now.tv_sec;
+  // uint64_t us = now.tv_usec;
+  // putc( now.tv_sec, stderr);
   return us;
 }
 
 uint64_t get_time() {
   if (boot_time == 0) boot_time = get_time_internal();
   uint64_t now = get_time_internal();
+    // cout<< get_time <<endl;
   return now - boot_time;
 }
 
-
-
-
-
-void init_device() {
-    init_map();
-
-    init_serial(); //uart
-    init_timer();
+static void serial_putc(char ch) {
+  cout << ch << endl;
 }
 
-void init_timer() {
-    rtc_poart_base = (uint32_t *)new_space(8);
+ void serial_io_output() {
+  // *serial_base = 1;
+  serial_putc(*serial_base);
+  // cout << serial_base[0] << endl;
+}
 
-    add_mmio_map("rtc", CONFIG_RTC_MMIO, rtc_port_base, 8, rtc_io_handler);
+void serial_io_input(uint8_t wdata) {
+  putc(wdata, stderr);
+  
+  // serial_base = (uint8_t *)wdata;
+
+  // printf("%c", *serial_base);
+
 }
 
 
-static void rtc_io_handler(uint32_t offset, int len, bool is_write) {
-  assert(offset == 0 || offset == 4);
-  if (!is_write && offset == 0) {
-    uint64_t us = get_time();
-    rtc_port_base[0] = (uint32_t)us;
-    rtc_port_base[1] = us >> 32;
-  }
-}
+// static void rtc_io_handler(uint32_t offset, int len, bool is_write) {
+//   assert(offset == 0 || offset == 4);
+//   if (!is_write && offset == 0) {
+//     uint64_t us = get_time();
+//     rtc_port_base[0] = (uint32_t)us;
+//     rtc_port_base[1] = us >> 32;
+//   }
+// }
 
 
 
