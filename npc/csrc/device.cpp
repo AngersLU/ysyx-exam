@@ -22,20 +22,20 @@ static uint64_t get_time_internal() {
   return us;
 }
 
-uint32_t get_time(int offset) {
+uint64_t get_time(int offset) {
   if (boot_time == 0) boot_time = get_time_internal();
   uint64_t now = get_time_internal();
     // cout<< get_time <<endl;
   uint64_t us = now - boot_time;
-  uint32_t rtc_port_base0 = (uint32_t)us;
-  uint32_t rtc_port_base1 = us >> 32;
+  // uint32_t rtc_port_base0 = (uint32_t)us;
+  // uint32_t rtc_port_base1 = us >> 32;
 
-  switch (offset) {
-  case 0: return rtc_port_base0;
-  case 4: return rtc_port_base1;
-  default: return 0;
-  }
-  return 0;
+  // switch (offset) {
+  // case 0: return rtc_port_base0;
+  // case 4: return rtc_port_base1;
+  // default: return 0;
+  // }
+  return us;
 }
 
 static void serial_putc(char ch) {

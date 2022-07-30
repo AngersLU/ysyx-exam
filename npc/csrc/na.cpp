@@ -207,7 +207,7 @@ static int cmd_c()
               // sp regs are used for addtion
               if(bubble != 1) {
                 // printf("     pc 0x%08lx \n", pc);
-                // difftest_step(pc, npc);
+                difftest_step(pc, npc);
               }
             }
           }
