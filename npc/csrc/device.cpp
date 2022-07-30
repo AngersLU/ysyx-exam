@@ -35,8 +35,7 @@ uint64_t get_time(int offset) {
   // case 4: return rtc_port_base1;
   // default: return 0;
   // }
-  if(boot_time == 0) return 0;
-  else return us;
+  return 0;
 }
 
 static void serial_putc(char ch) {

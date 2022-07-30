@@ -83,6 +83,7 @@ extern "C" void mem_read(long long raddr, long long *rdata) {
     *rdata = pmem_read((raddr & ~0x7ull), 8);
   }
   if (raddr == CONFIG_RTC_MMIO) {
+    // printf("%08lx\n", get_time(0));
     *rdata = get_time(0);
   }
   else if( raddr == (CONFIG_RTC_MMIO + 4)) {
@@ -169,7 +170,7 @@ void sim_init() {
   tfp = new VerilatedVcdC;
 
   top->trace(tfp, 99);
-  // tfp->open("wave.vcd");
+  tfp->open("wave.vcd");
 }
 
 // CMD
