@@ -11,19 +11,31 @@ static uint8_t *serial_base = NULL;
  
 
 static uint64_t get_time_internal() {
-  struct timeval now;
-  gettimeofday(&now, NULL);
-  uint64_t us = now.tv_sec * 1000000 + now.tv_usec;
+  // struct timeval now;
+  // gettimeofday(&now, NULL);
+  // uint64_t us = now.tv_sec * 1000000 + now.tv_usec;
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC_COARSE, &now);
+  uint64_t us = now.tv_sec * 1000000 + now.tv_nsec / 1000;
   // uint64_t us = now.tv_usec;
   // putc( now.tv_sec, stderr);
   return us;
 }
 
-uint32_t get_time() {
+uint32_t get_time(int offset) {
   if (boot_time == 0) boot_time = get_time_internal();
   uint64_t now = get_time_internal();
     // cout<< get_time <<endl;
-  return (uint32_t)(now - boot_time);
+  uint64_t us = now - boot_time;
+  uint32_t rtc_port_base0 = (uint32_t)us;
+  uint32_t rtc_port_base1 = us >> 32;
+
+  switch (offset) {
+  case 0: return rtc_port_base0;
+  case 4: return rtc_port_base1;
+  default: return 0;
+  }
+  return 0;
 }
 
 static void serial_putc(char ch) {

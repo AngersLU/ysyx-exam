@@ -83,7 +83,10 @@ extern "C" void mem_read(long long raddr, long long *rdata) {
     *rdata = pmem_read((raddr & ~0x7ull), 8);
   }
   if (raddr == CONFIG_RTC_MMIO) {
-    *rdata = get_time();
+    *rdata = get_time(0);
+  }
+  else if( raddr == (CONFIG_RTC_MMIO + 4)) {
+    *rdata = get_time(4);
   }
 }
 
@@ -107,7 +110,10 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
     pmem_write((waddr & ~0x7ull), 8, wdata_z);
   }
   if (waddr == CONFIG_SERIAL_MMIO ) {
+    // printf("1");
+    // putc(1, stderr);
     serial_io_input(wdata);
+    // serial_io_output();
   }
 
 }
@@ -163,7 +169,7 @@ void sim_init() {
   tfp = new VerilatedVcdC;
 
   top->trace(tfp, 99);
-  tfp->open("wave.vcd");
+  // tfp->open("wave.vcd");
 }
 
 // CMD
@@ -201,7 +207,7 @@ static int cmd_c()
               // sp regs are used for addtion
               if(bubble != 1) {
                 // printf("     pc 0x%08lx \n", pc);
-                difftest_step(pc, npc);
+                // difftest_step(pc, npc);
               }
             }
           }
