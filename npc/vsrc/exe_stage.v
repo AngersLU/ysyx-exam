@@ -123,12 +123,12 @@ module ysyx_2022040010_ex (
     wire [12:0] imm_B;
 
     wire [20:0] imm_J;
-    wire [19:0] imm_U;   
+    wire [31:0] imm_U;   
 //I
     assign imm_I    = inst_i[31:20];    //no need to decoder
     assign shamt    = imm_I[ 5: 0];
 //U
-    assign imm_U    = inst_i[31:12];    //no need to decoder
+    assign imm_U    = {inst_i[31:12], 12'b0};    //no need to decoder
 
 //S 
     assign imm_S    = {inst_i[31:25], inst_i[11:7]};    //no need to decoder
@@ -151,15 +151,15 @@ module ysyx_2022040010_ex (
                 //  imm_U_zero_extend, imm_J_zero_extend;
 
     wire [63: 0] shamt_zero_extend;
-    wire [63: 0] imm_U_sp_extend;
+    wire [63: 0] imm_U_sign_extend;
     wire [63: 0] imm_I_jalr_extend; 
 
     assign imm_I_sign_extend  = { {52{imm_I[11]}}, imm_I[11:0]};
     assign imm_S_sign_extend  = { {52{imm_S[11]}}, imm_S[11:0]};
-    assign imm_B_sign_extend  = { {52{imm_B[11]}}, imm_B[11:0]};
+    assign imm_B_sign_extend  = { {51{imm_B[12]}}, imm_B[12:0]};
 
-    assign imm_U_sign_extend  = { {44{imm_U[19]}}, imm_U[19:0]};
-    assign imm_J_sign_extend  = { {44{imm_J[19]}}, imm_J[19:0]};
+    assign imm_U_sign_extend  = { {32{imm_U[31]}}, imm_U[31:0]};
+    assign imm_J_sign_extend  = { {43{imm_J[20]}}, imm_J[20:0]};
 
     // assign imm_I_zero_extend  = { 52'b0, imm_I[11:0]};
     // assign imm_S_zero_extend  = { 52'b0, imm_S[11:0]};
@@ -171,7 +171,6 @@ module ysyx_2022040010_ex (
     assign shamt_zero_extend  = { 58'b0, shamt[ 5:0]};
 
 //   sel_alu_src1[2]  special handle
-    assign imm_U_sp_extend = { {32{imm_U[19]}}, imm_U[19:0], 12'b0 };
     // assign imm_I_jalr_extend = { {imm_I_sign_extend}&{~64'b1}};
 
     wire [63:0] alu_src1,   alu_src2;
@@ -186,7 +185,7 @@ module ysyx_2022040010_ex (
     assign src2_zero_extend = {59'b0, rf_rdata2[4:0]};
 
     assign alu_src2 =   sel_alu_src2[1] ? imm_I_sign_extend :
-                        sel_alu_src2[2] ? imm_U_sp_extend   :
+                        sel_alu_src2[2] ? imm_U_sign_extend :
                         sel_alu_src2[3] ? shamt_zero_extend :
                         sel_alu_src2[4] ? { 61'b0, 3'h4}    :
                         sel_alu_src2[5] ? imm_S_sign_extend :

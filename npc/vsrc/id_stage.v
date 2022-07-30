@@ -320,7 +320,7 @@ module ysyx_2022040010_id (
                             | inst_xori  |   inst_ori    |  inst_andi   |   inst_lb
                             | inst_lh    |   inst_lw     |  inst_ld     |   inst_lbu   |   inst_lhu    |  inst_lwu;
 
-    //spcial handle
+    // imm_sign_extend to src2 U-type
     assign sel_alu_src2[2]  = inst_lui   |   inst_auipc;
 
     //shamt to src2
