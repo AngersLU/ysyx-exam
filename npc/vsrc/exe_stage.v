@@ -161,17 +161,8 @@ module ysyx_2022040010_ex (
     assign imm_U_sign_extend  = { {32{imm_U[31]}}, imm_U[31:0]};
     assign imm_J_sign_extend  = { {43{imm_J[20]}}, imm_J[20:0]};
 
-    // assign imm_I_zero_extend  = { 52'b0, imm_I[11:0]};
-    // assign imm_S_zero_extend  = { 52'b0, imm_S[11:0]};
-    // assign imm_B_zero_extend  = { 52'b0, imm_B[11:0]};  
-
-    // assign imm_U_zero_extend  = { 44'b0, imm_U[19:0]};
-    // assign imm_J_zero_extend  = { 44'b0, imm_J[19:0]};
-
     assign shamt_zero_extend  = { 58'b0, shamt[ 5:0]};
 
-//   sel_alu_src1[2]  special handle
-    // assign imm_I_jalr_extend = { {imm_I_sign_extend}&{~64'b1}};
 
     wire [63:0] alu_src1,   alu_src2;
     wire [63:0] alu_result, ex_result;

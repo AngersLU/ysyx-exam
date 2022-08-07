@@ -16,6 +16,7 @@
         "mmio.h": "c",
         "map.h": "c",
         "common.h": "c",
-        "debug.h": "c"
+        "debug.h": "c",
+        "isa-def.h": "c"
     }
 }

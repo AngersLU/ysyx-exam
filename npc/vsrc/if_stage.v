@@ -43,7 +43,6 @@ module ysyx_2022040010_if (
     assign next_pc = br_e ? br_addr : pc_reg + 64'h4;
 
 
-    // assign  next_pc = br_e ? br_addr : (pc_reg + 64'h4);    
 
     wire [63: 0] if_pc;
     assign if_pc = (pc_reg == `PC_START) ? 64'b0 : pc_reg;

@@ -11,7 +11,7 @@ module ysyx_2022040010_shift (
     output reg[63:0] shift_result
 );
 
-    wire [63:0] shift_res;  //
+    wire [63:0] shift_res;  
     wire op_srl;            // right or left
     wire [63:0] sra_mask;
     wire [63:0] srl_res; //shift right logic
@@ -56,7 +56,6 @@ module ysyx_2022040010_shift (
     assign shift_result_temp =  shift_op[2] ? sll_res : 
                                 shift_op[1] ? srl_res :
                                 shift_op[0] ? sra_res : 64'b0 ;
-                                                        //TODO: I don't know if this assign is correct 
 
     assign shift_result = alu_32 ? { {32{shift_result_temp[31]}}, shift_result_temp[31:0]} : shift_result_temp;
 

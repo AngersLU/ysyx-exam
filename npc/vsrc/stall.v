@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+`include "defines.v"
 module ysyx_2022040010_stall(
     input wire rst,
     input wire stallreq_for_ex,

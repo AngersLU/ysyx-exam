@@ -26,11 +26,7 @@ module ysyx_2022040010_mem (
 );
 
     reg [`EX_TO_MEM_BUS] ex_to_mem_bus_r;
-
-
-    //TODO:not understand stall & flag
     reg flag;
-    // reg [31: 0] dsram_rdata_buffer; 
 
 
     always @(posedge clk) begin

@@ -1,5 +1,6 @@
 
 `timescale 1ns/1ns
+`include "defines.v"
 module ysyx_2022040010_add (
   input wire [63:0]     in_a,
   input wire [63:0]     in_b,

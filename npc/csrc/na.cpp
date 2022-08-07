@@ -83,7 +83,6 @@ extern "C" void mem_read(long long raddr, long long *rdata) {
     *rdata = pmem_read((raddr & ~0x7ull), 8);
   }
   if (raddr == CONFIG_RTC_MMIO) {
-    // printf("%08lx\n", get_time(0));
     *rdata = get_time();
   }
 }
@@ -104,7 +103,6 @@ extern "C" void mem_write(long long waddr, long long wdata, char wmask) {
     wdata = wdata & mask;
     mask = ~mask;
     long long wdata_z = wdata | (pmem_read((waddr & ~0x7ull), 8) & mask);
-    // printf("wdata_z = %llx\n", wdata_z);
     pmem_write((waddr & ~0x7ull), 8, wdata_z);
   }
   if (waddr == CONFIG_SERIAL_MMIO ) {
