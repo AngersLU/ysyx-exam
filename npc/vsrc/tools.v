@@ -79,7 +79,7 @@ module data_cache_bank (
     input wire  we,
     input wire  addr,
     input wire  [63:0] in,
-    output wire [63:0] out,
+    output wire [63:0] out
 );
     reg [63:0] bank;
     always @(posedge clk) begin

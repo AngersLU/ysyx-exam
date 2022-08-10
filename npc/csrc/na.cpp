@@ -148,7 +148,7 @@ static int parse_args(int argc, char *argv[]) {
 void sim_exit() {
   tfp->close();
   delete top;
-  // delete contextp;
+  delete contextp;
 }
 
 void exit_now() {
