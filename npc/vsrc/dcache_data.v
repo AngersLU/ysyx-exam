@@ -8,7 +8,7 @@ module dcache_data (
     input wire wirte_back,
     input wire [`HIT_WIDTH-1:0] hit,
     input wire lru,  //least rencently used
-    input wire vaild,
+    input wire cache,
     input wire dirty,
 
     //sram_interface
@@ -32,7 +32,7 @@ module dcache_data (
     wire [2:0] offset;           // 3  cache lines 8bytes
     reg  [`HIT_WIDTH-1:0] hit_r; //
     reg lru_r;
-    reg vaild_r; 
+    reg cache_r; 
     
 
     assign {
@@ -53,13 +53,13 @@ module dcache_data (
         if (rst) begin
             hit_r       <= 2'b0;
             lru_r       <= 1'b0;
-            vaild_r    <= 1'b1;
+            cache_r    <= 1'b1;
             bank_sel_r  <= 64'b0;
         end
         else begin
             hit_r       <= hit;
             lru_r       <= lru;
-            vaild_r    <= vaild;
+            cache_r    <= cache;
             bank_sel_r  <= bank_sel;
         end
     end
@@ -71,7 +71,7 @@ module dcache_data (
             begin: dloopway0
                 data_cache_bank bankx_way0(
                     .clk    (clk),
-                    .en     (vaild & sram_e & bank_sel[gv_w0] & hit[0] | wirte_back),
+                    .en     (cache & sram_e & bank_sel[gv_w0] & hit[0] | wirte_back),
                     .we     (refresh?~lru_r?1'b1:1'b0:write_back?1'b0:sram_we), 
                     .addr   (index),
                     .dina   (refresh?cacheline_new:sram_wdata),
@@ -87,7 +87,7 @@ module dcache_data (
             begin: dloopway1
                 data_cache_bank bankx_way1( 
                     .clk    (clk),
-                    .en     (vaild & sram_e & bank_sel[gv_w0] & hit[1] | wirte_back),
+                    .en     (cache & sram_e & bank_sel[gv_w0] & hit[1] | wirte_back),
                     .we     (refresh?lru_r?1'b1:1'b0:write_back?1'b0:sram_we),       // refresh w wirte_bakc r store w 
                     .addr   (index),
                     .dina   (refresh?cacheline_new:sram_wdata),
@@ -98,7 +98,7 @@ module dcache_data (
 
     wire [63:0] sram_rdata_way0, sram_rdata_way1;
 
-    assign sram_rdata_way0 =    ~vaild_r       ? 64'b0 :
+    assign sram_rdata_way0 =    ~cache_r       ? 64'b0 :
                                 bank_sel_r[ 0]  ? rdata_way0[ 0] :
                                 bank_sel_r[ 1]  ? rdata_way0[ 1] :
                                 bank_sel_r[ 2]  ? rdata_way0[ 2] :
@@ -167,7 +167,7 @@ module dcache_data (
 
 
 
-    assign sram_rdata_way1 =    ~vaild_r       ? 64'b0 :
+    assign sram_rdata_way1 =    ~cache_r       ? 64'b0 :
                                 bank_sel_r[ 0]  ? rdata_way1[ 0] :
                                 bank_sel_r[ 1]  ? rdata_way1[ 1] :
                                 bank_sel_r[ 2]  ? rdata_way1[ 2] :

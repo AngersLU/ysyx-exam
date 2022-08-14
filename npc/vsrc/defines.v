@@ -117,8 +117,8 @@
 // `define PC_MBASE    64'h0000_0000_8000_0000
 
 `define HIT_WIDTH 2
-`define TAR_WIDTH 56 // vaild + tagg 1+55
-`define DTAR_WIDTH 57 // dirty + vaild + tag 1+1+55 
+`define TAR_WIDTH 56 // valid + tagg 1+55
+`define DTAR_WIDTH 57 // dirty + valid + tag 1+1+55 
 
 //uncache 
 `define T1 2'b00

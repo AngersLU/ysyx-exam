@@ -7,7 +7,7 @@ module dcache_tag (
     
     output wire stallreq,  // access memory 
 
-    input wire vaild,
+    input wire cache,
 
     input wire sram_e,
     input wire sram_we, // 0 load 1 store
@@ -23,12 +23,12 @@ module dcache_tag (
 );
 
     reg [`DTAG_WIDTH-1:0] tag_way0 [`INDEX_WIDTH-1:0];
-    reg [`DTAG_WIDTH-1:0] tag_way1 [`INDEX_WIDTH-1:0];   // dirty + vaild + tag
+    reg [`DTAG_WIDTH-1:0] tag_way1 [`INDEX_WIDTH-1:0];   // dirty + cache + tag
     reg [`INDEX_WIDTH-1:0] lru_r;
     wire [54:0] tag;   // 55
     wire [5:0] index;           // 6 64lines 
     wire [2:0] offset;          // 3 2^3=8 8*8 = 64bits
-    wire vaild_v;
+    wire cache_v;
 
     wire hit_way0;          
     wire hit_way1;
@@ -36,7 +36,7 @@ module dcache_tag (
     wire write_back_way0;  
     wire write_back_way1;
 
-    assign vaild_v = vaild;
+    assign cache_v = cache;
 
     assign {
         tag,
@@ -66,8 +66,8 @@ module dcache_tag (
 
 
         end
-        else if (refresh & ~lru_r[index]) begin  // lru vaild 0
-            tag_way0[index] <= {1'b0, vaild_v, tag};
+        else if (refresh & ~lru_r[index]) begin  // lru cache 0
+            tag_way0[index] <= {1'b0, cache_v, tag};
         end
     end
 
@@ -81,15 +81,15 @@ module dcache_tag (
 
         end
         else if (refresh & lru_r[index]) begin
-            tag_way1[index] <= {1'b0, vaild_v, tag};   // replacement strategy for write back
+            tag_way1[index] <= {1'b0, cache_v, tag};   // replacement strategy for write back
         end
     end
 
 
     wire store_dirty;
-    assign hit_way0 = ~flush & vaild_v & sram_e & ({1'b1, tag} == tag_way0[index][55:0]);
-    assign hit_way1 = ~flush & vaild_v & sram_e & ({1'b1, tag} == tag_way1[index][55:0]);
-    assign miss = vaild_v & sram_e & ~(hit_way0|hit_way1) & ~flush;
+    assign hit_way0 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way0[index][55:0]);
+    assign hit_way1 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way1[index][55:0]);
+    assign miss = cache_v & sram_e & ~(hit_way0|hit_way1) & ~flush;
     assign store_dirty = miss & sram_we;  // store
 
     always @(*) begin
@@ -104,8 +104,8 @@ module dcache_tag (
     end
 
     assign stallreq = miss;
-    assign write_back_way0 = vaild_v & sram_e & miss & tag_way0[index][`DTAG_WIDTH-1]; // dirty
-    assign write_back_way1 = vaild_v & sram_e & miss & tag_way1[index][`DTAG_WIDTH-1];
+    assign write_back_way0 = cache_v & sram_e & miss & tag_way0[index][`DTAG_WIDTH-1]; // dirty
+    assign write_back_way1 = cache_v & sram_e & miss & tag_way1[index][`DTAG_WIDTH-1];
     assign write_back = write_back_way0 | write_back_way1;
 
 

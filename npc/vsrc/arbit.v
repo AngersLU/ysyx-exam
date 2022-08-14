@@ -1,5 +1,4 @@
 
-
 `include "defines.v"
 `timescale 1ns/1ns
 
@@ -11,7 +10,6 @@ module arbit (
     input  wire         icache_re_i,
     input  wire [31:0]  icache_addr_i,
     output wire [63:0]  icache_data_o,  // send to icache
-
 
     // dcache interface   // miss & dirty
     input  wire         dcache_re_i,
@@ -26,14 +24,14 @@ module arbit (
     input  wire         uncache_we_i,
     input  wire [ 7:0]  uncache_mask_i,
     input  wire [31:0]  uncache_addr_i,
-    input  wire [63:0]  uncache_writedata_i, // device write
-    output wire [63:0]  uncache_readdata_o,  // device read
+    output wire [63:0]  uncache_writedata_i, // device write
+    input  wire [63:0]  uncache_readdata_o,  // device read
 
     output wire         ar_e_o, 
-    output wire         ar_id_o,
+    output wire [ 3:0]  ar_id_o,
     output wire [31:0]  ar_addr_o,
     input  wire [63:0]  r_data_i, // from axi4 -> icache_data_o
-    input  wire         r_id_i,
+    input  wire [3:0]   r_id_i,
     input  wire         r_over_i, 
 
     output wire         aw_e_o,
@@ -45,9 +43,9 @@ module arbit (
 
     // r
     assign ar_e_o           =   icache_re_i | dcache_re_i | uncache_re_i;
-    assign ar_id_o          =   icache_re_i ? 1'b0
-                            :   dcache_re_i ? 1'b1
-                            :   uncache_re_i? 1'b1;
+    assign ar_id_o          =   icache_re_i ? 4'b0000
+                            :   dcache_re_i ? 4'b0001
+                            :   uncache_re_i? 4'b0010; // TODO: modify
     assign ar_addr_o        =   icache_re_i ? icache_addr_i 
                             :   dcache_re_i ? dcache_addr_i
                             :   uncache_re_i? uncache_addr_i;

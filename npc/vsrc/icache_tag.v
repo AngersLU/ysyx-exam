@@ -6,7 +6,7 @@ module cache_tag (
     // input wire flush,
     
     // output wire stallreq,
-    input wire valid,
+    input wire cache,
 
     input wire sram_e,
     input wire sram_addr,
@@ -18,17 +18,18 @@ module cache_tag (
     output wire lru
 );
 
-    reg [`TAG_WIDTH-1:0] tag_way0 [`INDEX_WIDTH-1:0];  //vaild tag      lines 64 
+    reg [`TAG_WIDTH-1:0] tag_way0 [`INDEX_WIDTH-1:0];  //cache tag      lines 64 
     reg [`TAG_WIDTH-1:0] tag_way1 [`INDEX_WIDTH-1:0];
-    reg [`INDEX_WIDTH-1:0] lru_r;                      // contrul tow cache lines a cache set
+    // contrul tow cache lines a cache set
+    reg [`INDEX_WIDTH-1:0] lru_r; //least rencently used
     wire [`TAG_WIDTH-1:0] tag;  // 55
     wire [5:0] index;           // 6 64lines 
     wire [2:0] offset;          // 3 2^3=8 8*8 = 64bits
-    wire valid_v;
-
-    wire hit_way0;            // valid == 1 & tag == tag 
+    wire hit_way0;            // cache == 1 & tag == tag 
     wire hit_way1;
-    assign valid_v = valid;
+
+    wire cache_v;
+    assign cache_v = cache;
 
     // 64bits
     assign {
@@ -54,7 +55,7 @@ module cache_tag (
 
     always @(posedge clk) begin
         if(rst) begin
-                        tag_way1[ 0] <= `TAR_WIDTH'b0;
+            tag_way1[ 0] <= `TAR_WIDTH'b0;
             tag_way0[ 1] <= `TAR_WIDTH'b0;
             tag_way0[ 2] <= `TAR_WIDTH'b0;
             tag_way0[ 3] <= `TAR_WIDTH'b0;
@@ -119,8 +120,8 @@ module cache_tag (
             tag_way0[62] <= `TAR_WIDTH'b0;
             tag_way0[63] <= `TAR_WIDTH'b0;
         end
-        else if (refresh & ~lru_r[index]) begin  // lru vaild 0
-            tag_way0[index] <= {valid_v, tag};   // 
+        else if (refresh & ~lru_r[index]) begin  // lru cache 0
+            tag_way0[index] <= {cache_v, tag};   // 
         end
     end
 
@@ -192,13 +193,14 @@ module cache_tag (
             tag_way1[63] <= `TAR_WIDTH'b0;
         end
         else if (refresh & lru_r[index]) begin    // only one line is replaced after a miss
-            tag_way1[index] <= {valid_v, tag};   // replacement strategy for write back
+            tag_way1[index] <= {cache_v, tag};   // replacement strategy for write back
         end
     end
 
-    assign hit_way0 = ~flush & valid_v & sram_e & ({1'b1, tag} == tag_way0[index]);
-    assign hit_way1 = ~flush & valid_v & sram_e & ({1'b1, tag} == tag_way1[index]);
-    assign miss = valid_v & sram_e & ~(hit_way0|hit_way1) & ~flush;
+    assign hit_way0 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way0[index]);
+    assign hit_way1 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way1[index]);
+    assign hit      = {hit_way1, hit_way0};
+    assign miss     = cache_v & sram_e & ~(hit_way0|hit_way1) & ~flush;
     assign stallreq = miss;
 
     

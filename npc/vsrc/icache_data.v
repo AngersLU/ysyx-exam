@@ -1,13 +1,14 @@
 
 `define "defines.v"
 `timescale 1ns/1ns
+
 module cache_data (
     input wire clk, 
     input wire rst,
 
     input wire [`HIT_WIDTH-1:0] hit,    //way sel
     input wire lru,  //least rencently used
-    input wire valid,
+    input wire cache,
 
     //isram_interface
     input wire sram_e,
@@ -27,7 +28,7 @@ module cache_data (
     wire [2:0] offset;           // 3  cache lines 8bytes     0->3'b000 / 4->3'b100
     reg  [`HIT_WIDTH-1:0]   hit_r; //
     reg lru_r;
-    reg valid_r; 
+    reg cache_r; 
 
     assign {
         tag,
@@ -47,13 +48,13 @@ module cache_data (
         if (rst) begin
             hit_r       <= 2'b0;
             lru_r       <= 1'b0;
-            valid_r     <= 1'b0;
+            cache_r     <= 1'b0;
             bank_sel_r  <= 64'b0;
         end
         else begin
             hit_r       <= hit;
             lru_r       <= lru;
-            valid_r     <= valid;
+            cache_r     <= cache;
             bank_sel_r  <= bank_sel;
         end
     end
@@ -65,7 +66,7 @@ module cache_data (
             begin: iloopway0
                 data_cache_bank bankx_way0(
                     .clk    (clk),
-                    .en     (valid & refresh  | sram_e & bank_sel[gv_w0] & hit[0]),
+                    .en     (cache & refresh  | sram_e & bank_sel[gv_w0] & hit[0]),
                     .we     (fresh?lru?1'b1:1'b0:1'b0),
                     .addr   (index==gv_w0),
                     .in     (refresh?cacheline_new:64'b0),
@@ -80,7 +81,7 @@ module cache_data (
             begin: iloopway1
                 data_cache_bank bankx_way1( 
                     .clk    (clk),
-                    .en     (valid & refresh | sram_e & bank_sel[gv_w0] & hit[1]),
+                    .en     (cache & refresh | sram_e & bank_sel[gv_w0] & hit[1]),
                     .we     (fresh?lru?1'b1:1'b0:1'b0),
                     .addr   (index==gv_wa0),
                     .in     (refresh?cacheline_new:64'b0),
@@ -91,7 +92,7 @@ module cache_data (
 
     wire [63:0] sram_rdata_way0, sram_rdata_way1;
 
-    assign sram_rdata_way0 =    ~valid_r        ? 64'b0 :
+    assign sram_rdata_way0 =    ~cache_r        ? 64'b0 :
                                 bank_sel_r[ 0]  ? rdata_way0[ 0] :
                                 bank_sel_r[ 1]  ? rdata_way0[ 1] :
                                 bank_sel_r[ 2]  ? rdata_way0[ 2] :
@@ -160,7 +161,7 @@ module cache_data (
 
 
 
-    assign sram_rdata_way1 =    ~valid_r       ? 64'b0 :
+    assign sram_rdata_way1 =    ~cache_r       ? 64'b0 :
                                 bank_sel_r[ 0]  ? rdata_way1[ 0] :
                                 bank_sel_r[ 1]  ? rdata_way1[ 1] :
                                 bank_sel_r[ 2]  ? rdata_way1[ 2] :

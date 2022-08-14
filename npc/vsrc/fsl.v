@@ -118,5 +118,22 @@ module ysyx_2022040010_fsl (
         .stall              (stall              ) 
     );
 
+    ysyx_2022040010_uncache_tag uncache_tagu (
+        .clk                (clk                ),
+        .rst                (rst                ),
+        .stallreq           (stallreq_for_uncache),
+        .uncache            (uncache            ),
+        .dsram_e            (dsram_e            ),
+        .dsram_we           (dsram_we           ),
+        .dsram_addr         (dsram_addr         ),
+        .dsram_wdata        (dsram_wdata        ),
+        .dsram_wsel         (dsram_sel          ),
+        .refresh            (TODO:),
+        .axi_e              (axi_e              ),
+        .axi_we             (axi_we             ),
+        .axi_wsel           (axi_wsel           ),
+        .axi_miss           (axi_miss           )
+    );
+
 endmodule
 
