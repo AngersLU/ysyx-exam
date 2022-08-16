@@ -119,10 +119,10 @@ static int cmd_si(char *args){
 	}
 
 	sscanf(arg, "%d", &steps);// char -> int
-	// if(steps<0 || steps>9){		//AMX_INSTR_TO_PRINT=10
-	// 	printf("Error, steps is wrong!\n");
-	// 	return 0;
-	// }
+	if(steps<0 || steps>9){		//AMX_INSTR_TO_PRINT=10
+		printf("Error, steps is wrong!\n");
+		return 0;
+	}
 	cpu_exec(steps);
 	return 0;
 }

@@ -2,7 +2,7 @@
 `include "defines.v"
 `timescale 1ns/1ns
 
-module axi_rw # (
+module axi4 # (
     parameter RW_DATA_WIDTH     = 64,
     parameter RW_ADDR_WIDTH     = 32,
     parameter AXI_DATA_WIDTH    = 64,
@@ -13,16 +13,18 @@ module axi_rw # (
     input  wire                             clk,
     input  wire                             rst,
     // don't have cache no dirty and no miss
-    input  wire                             r_e_i, 
-    input  wire [AXI_ID_WIDTH-1:0]          r_id_i,             //if 0 ex 1
-    input  wire [RW_ADDR_WIDTH-1:0]         r_addr_i,           //IF&EXE输入信号
+    input  wire                             ar_e_i, 
+    input  wire [AXI_ID_WIDTH-1:0]          ar_id_i,             //if 0 ex 1
+    input  wire [RW_ADDR_WIDTH-1:0]         ar_addr_i,           //IF&EXE输入信号
     output reg  [RW_DATA_WIDTH-1:0]         r_data_o,           //IF&EXE输入信号
+    output reg  [RW_DATA_WIDTH-1:0]         r_id_o,
+    output reg  [RW_DATA_WIDTH-1:0]         r_refresh_o,
 
-	input  wire                             w_e_i,              //MEM输入信号
-    input  wire [RW_ADDR_WIDTH-1:0]         w_addr_i,           //MEM输入信号
+	input  wire                             aw_e_i,              //MEM输入信号
+    input  wire [RW_ADDR_WIDTH-1:0]         aw_addr_i,           //MEM输入信号
     input  wire [RW_DATA_WIDTH-1:0]         w_data_i,           //MEM输入信号
     input  wire [7:0]                       w_mask_i,           //MEM输入信号
-    output wire                             w_over_o;
+    // output wire                             w_over_o;
 
     // Advanced extensible Interface
     output reg [AXI_ID_WIDTH-1:0]           axi_aw_id_o,

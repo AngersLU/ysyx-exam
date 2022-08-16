@@ -1,19 +1,19 @@
 `include "defines.h"
 `timescale 1ns/1ns
 module dcache_tag (
-    input wire clk,
-    input wire rst,
-    input wire flush,
+    input  wire clk,
+    input  wire rst,
+    input  wire flush,
     
     output wire stallreq,  // access memory 
 
-    input wire cache,
+    input  wire cache,
 
-    input wire sram_e,
-    input wire sram_we, // 0 load 1 store
-    input wire sram_addr,
+    input  wire sram_e,
+    input  wire sram_we, // 0 load 1 store
+    input  wire sram_addr,
 
-    input wire refresh,
+    input  wire refresh,
     output wire miss,
     output wire dirty,
     output wire write_back,
@@ -25,7 +25,7 @@ module dcache_tag (
     reg [`DTAG_WIDTH-1:0] tag_way0 [`INDEX_WIDTH-1:0];
     reg [`DTAG_WIDTH-1:0] tag_way1 [`INDEX_WIDTH-1:0];   // dirty + cache + tag
     reg [`INDEX_WIDTH-1:0] lru_r;
-    wire [54:0] tag;   // 55
+    wire [54:0] tag;            // 55
     wire [5:0] index;           // 6 64lines 
     wire [2:0] offset;          // 3 2^3=8 8*8 = 64bits
     wire cache_v;
@@ -62,6 +62,54 @@ module dcache_tag (
     always @(posedge clk) begin
         if(rst) begin
             tag_way0[ 0] <= 56'b0;
+            tag_way0[ 1] <= 56'b0;
+            tag_way0[ 2] <= 56'b0;
+            tag_way0[ 3] <= 56'b0;
+            tag_way0[ 4] <= 56'b0;
+            tag_way0[ 5] <= 56'b0;
+            tag_way0[ 6] <= 56'b0;
+            tag_way0[ 7] <= 56'b0;
+            tag_way0[ 8] <= 56'b0;
+            tag_way0[ 9] <= 56'b0;
+            tag_way0[10] <= 56'b0;
+            tag_way0[11] <= 56'b0;
+            tag_way0[12] <= 56'b0;
+            tag_way0[13] <= 56'b0;
+            tag_way0[14] <= 56'b0;
+            tag_way0[15] <= 56'b0;
+            tag_way0[16] <= 56'b0;
+            tag_way0[17] <= 56'b0;
+            tag_way0[18] <= 56'b0;
+            tag_way0[19] <= 56'b0;
+            tag_way0[20] <= 56'b0;
+            tag_way0[21] <= 56'b0;
+            tag_way0[22] <= 56'b0;
+            tag_way0[23] <= 56'b0;
+            tag_way0[24] <= 56'b0;
+            tag_way0[25] <= 56'b0;
+            tag_way0[26] <= 56'b0;
+            tag_way0[27] <= 56'b0;
+            tag_way0[28] <= 56'b0;
+            tag_way0[29] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+            tag_way0[ 0] <= 56'b0;
+
 
 
 

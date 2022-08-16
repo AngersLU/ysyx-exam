@@ -1,6 +1,6 @@
 `include "defines.h"
 `timescale 1ns/1ns
-module cache_tag (
+module icache_tag (
     input wire clk,
     input wire rst,
     // input wire flush,
@@ -199,6 +199,7 @@ module cache_tag (
 
     assign hit_way0 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way0[index]);
     assign hit_way1 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way1[index]);
+    assign lru      = lru_r[index];
     assign hit      = {hit_way1, hit_way0};
     assign miss     = cache_v & sram_e & ~(hit_way0|hit_way1) & ~flush;
     assign stallreq = miss;

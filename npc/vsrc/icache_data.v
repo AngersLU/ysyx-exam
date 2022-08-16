@@ -2,7 +2,7 @@
 `define "defines.v"
 `timescale 1ns/1ns
 
-module cache_data (
+module icache_data (
     input wire clk, 
     input wire rst,
 
@@ -67,7 +67,7 @@ module cache_data (
                 data_cache_bank bankx_way0(
                     .clk    (clk),
                     .en     (cache & refresh  | sram_e & bank_sel[gv_w0] & hit[0]),
-                    .we     (fresh?lru?1'b1:1'b0:1'b0),
+                    .we     (fresh?~lru?1'b1:1'b0:1'b0),
                     .addr   (index==gv_w0),
                     .in     (refresh?cacheline_new:64'b0),
                     .out    (rdata_way0[gv_w0])

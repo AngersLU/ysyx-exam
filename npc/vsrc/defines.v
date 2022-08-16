@@ -119,6 +119,7 @@
 `define HIT_WIDTH 2
 `define TAR_WIDTH 56 // valid + tagg 1+55
 `define DTAR_WIDTH 57 // dirty + valid + tag 1+1+55 
+`define INDEX_WIDTH 64
 
 //uncache 
 `define T1 2'b00
