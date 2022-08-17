@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "utils.h": "c",
+        "reg.h": "c",
+        "ifetch.h": "c",
+        "decode.h": "c",
+        "cstdlib": "c",
+        "difftest-def.h": "c",
+        "difftest.h": "c",
+        "dlfcn.h": "c",
+        "cpu.h": "c",
+        "paddr.h": "c",
+        "isa.h": "c",
+        "limits": "c",
+        "host.h": "c",
+        "mmio.h": "c",
+        "map.h": "c",
+        "common.h": "c",
+        "debug.h": "c"
+    }
+}
