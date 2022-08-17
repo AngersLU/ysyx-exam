@@ -28,58 +28,59 @@
 
 module ysyx_2022040010_fsl (
     // Advanced extensible Interface
-    output reg  [AXI_ID_WIDTH-1:0]          axi_aw_id_o,
-    output reg  [AXI_ADDR_WIDTH-1:0]        axi_aw_addr_o, 
-    output reg  [7:0]                       axi_aw_len_o, 
-    output reg  [2:0]                       axi_aw_size_o,  
-    output reg  [1:0]                       axi_aw_burst_o, 
+    input  wire                             clk,
+    input  wire                             rst,
+
+    output reg  [ 3:0]                      axi_aw_id_o,
+    output reg  [31:0]                      axi_aw_addr_o, 
+    output reg  [ 7:0]                      axi_aw_len_o, 
+    output reg  [ 2:0]                      axi_aw_size_o,  
+    output reg  [ 1:0]                      axi_aw_burst_o, 
     output reg                              axi_aw_lock_o,
-    output reg  [3:0]                       axi_aw_cache_o,
-    output reg  [2:0]                       axi_aw_prot_o,    
-    output reg  [3:0]                       axi_aw_qos_o,
-    output reg  [3:0]                       axi_aw_region_o,                   
+    output reg  [ 3:0]                      axi_aw_cache_o,
+    output reg  [ 2:0]                      axi_aw_prot_o,    
+    output reg  [ 3:0]                      axi_aw_qos_o,
+    output reg  [ 3:0]                      axi_aw_region_o,                   
     output reg                              axi_aw_valid_o,
     input  wire                             axi_aw_ready_i, 
     
-    output reg  [AXI_DATA_WIDTH-1:0]        axi_w_data_o,
-    output reg  [AXI_DATA_WIDTH/8-1:0]      axi_w_strb_o,
+    output reg  [63:0]                      axi_w_data_o,
+    output reg  [ 7:0]                      axi_w_strb_o,
     output reg                              axi_w_last_o,
     output reg                              axi_w_valid_o,  
     input  wire                             axi_w_ready_i,                
 
-    input  wire [AXI_ID_WIDTH-1:0]          axi_b_id_i,
-    input  wire [1:0]                       axi_b_resp_i,                 
+    input  wire [ 3:0]                      axi_b_id_i,
+    input  wire [ 1:0]                      axi_b_resp_i,                 
     input  wire                             axi_b_valid_i,
     output reg                              axi_b_ready_o, 
 
-    output reg  [AXI_ID_WIDTH-1:0]          axi_ar_id_o,
-    output reg  [AXI_ADDR_WIDTH-1:0]        axi_ar_addr_o,
-    output reg  [7:0]                       axi_ar_len_o,
-    output reg  [2:0]                       axi_ar_size_o,
-    output reg  [1:0]                       axi_ar_burst_o,
+    output reg  [ 3:0]                      axi_ar_id_o,
+    output reg  [31:0]                      axi_ar_addr_o,
+    output reg  [ 7:0]                      axi_ar_len_o,
+    output reg  [ 2:0]                      axi_ar_size_o,
+    output reg  [ 1:0]                      axi_ar_burst_o,
     output reg                              axi_ar_lock_o,  
-    output reg  [3:0]                       axi_ar_cache_o,    
-    output reg  [2:0]                       axi_ar_prot_o,
-    output reg  [3:0]                       axi_ar_qos_o,
-    output reg  [3:0]                       axi_ar_region_o,
+    output reg  [ 3:0]                      axi_ar_cache_o,    
+    output reg  [ 2:0]                      axi_ar_prot_o,
+    output reg  [ 3:0]                      axi_ar_qos_o,
+    output reg  [ 3:0]                      axi_ar_region_o,
     output reg                              axi_ar_valid_o, 
     input  wire                             axi_ar_ready_i,
 
-    input  wire [AXI_ID_WIDTH-1:0]          axi_r_id_i,    // from icache&dcache or isram or dsram//
-    input  wire [AXI_DATA_WIDTH-1:0]        axi_r_data_i,  
-    input  wire [1:0]                       axi_r_resp_i,  
+    input  wire [ 3:0]                      axi_r_id_i,    // from icache&dcache or isram or dsram//
+    input  wire [63:0]                      axi_r_data_i,  
+    input  wire [ 1:0]                      axi_r_resp_i,  
     input  wire                             axi_r_last_i,   
     input  wire                             axi_r_valid_i,      
     output reg                              axi_r_ready_o,
 
-    output wire [63: 0]                     debug_wb_pc,
-    output wire [63: 0]                     debug_wb_npc,
+    output wire [63:0]                      debug_wb_pc,
+    output wire [63:0]                      debug_wb_npc,
     output wire                             bubble,
-    output wire [63: 0]                     debug_ex_pc                    
+    output wire [63:0]                      debug_ex_pc                    
 
 );
-    
-endmodule
 
     wire [`IF_TO_ID_BUS]    if_to_id_bus;
     wire [`ID_TO_EX_BUS]    id_to_ex_bus;
@@ -174,11 +175,58 @@ endmodule
         .stall              (stall              ) 
     );
 
+    wire [63:0] addr_i;
+    wire cache_o, uncache_o;
+    assign addr_i = isram_e ? isram_addr
+                :   dsram_e ? dsram_addr   // include dcache and uncache
+                :   64'b0;
+
     ysyx_2022040010_mmu mmu (
         .addr_i             (addr_i             ),
         .cache_o            (cache_o            ),  // send to i&d-cache
         .uncache_o          (uncache_o          )   // send to uncache
     );
+
+    wire        icache_re;
+    wire [63:0] icache_newdata;
+    wire        icache_refresh;
+    wire        dcache_re;
+    wire        dcache_we;
+    wire [7: 0] dcache_mask;
+    wire [31:0] dcache_addr;
+    wire [63:0] dcache_olddata;
+    wire [63:0] dcache_newdata;
+    wire        dcache_refresh;
+    wire        uncache_re;
+    wire        uncache_we;
+    wire [ 7:0] uncache_mask;
+    wire [31:0] uncache_addr;
+    wire [63:0] uncache_wdata;
+    wire [63:0] uncache_rdata;
+    wire        uncache_refresh;
+    
+    wire        axi_ar_e;
+    wire [ 3:0] axi_ar_id;
+    wire [31:0] axi_ar_addr;
+    wire [63:0] axi_r_data;
+    wire [ 3:0] axi_r_id;
+    wire        axi_r_refresh;
+
+    wire        axi_aw_e;
+    wire [31:0] axi_aw_addr;
+    wire [63:0] axi_w_data;
+    wire [ 7:0] axi_w_mask; 
+
+    assign icache_re    = icache_miss&isram_e&cache_o;
+    assign dcache_re    = dcache_miss&cache_o;
+    assign dcache_we    = dcache_dirty&cache_o;
+    assign dcache_mask  = dsram_sel;
+    assign dcache_addr  = dsram_addr;
+    assign uncache_re   = uncache_miss&uncache_o&dsram_e&~dsram_we;
+    assign uncache_we   = uncache_miss&uncache_o&dsram_e& dsram_we;
+    assign uncache_mask = dsram_sel;
+    assign uncache_addr = dsram_addr;
+    assign uncache_wdata = dsram_wdata; 
 
     ysyx_2022040010_arbit arbitu (
         .clk                (clk                ),
@@ -201,22 +249,26 @@ endmodule
         .uncache_we_i       (uncache_we         ), //uncache_miss&axi_e_axi_we
         .uncache_mask_i     (uncache_mask       ), //axi_wsel
         .uncache_addr_i     (uncache_addr       ), //axi_addr
-        .uncache_wirtedata_i(uncache_writedata  ), //axi_wdata
+        .uncache_wirtedata_i(uncache_wdata      ), //axi_wdata
         .uncache_readdata_o (uncache_rdata      ),   //send to uncache
         .uncache_refresh_o  (uncache_refresh    ),   //send to uncache
         //axi read interface
         .ar_e_o             (axi_ar_e           ), //r_e_i
         .ar_id_o            (axi_ar_id          ), //r_id_i
         .ar_addr_o          (axi_ar_addr        ), //r_addr_i
-        .r_data_i           (axi_r_data         ), //r_data_o
+        .r_data_i           (axi_r_data         ), //r_data_o 
         .r_id_i             (axi_r_id           ), // icache / dcache / uncache
         .r_refresh_i        (axi_r_refresh      ), //r_last
         //axi write interface
         .aw_e_o             (axi_aw_e           ), //w_e_i
         .aw_addr_o          (axi_aw_addr        ), //w_addr_i
         .w_data_o           (axi_w_data         ), //w_data_i
-        .w_mask_i           (axi_w_mask         )  //w_mask_i
+        .w_mask_o           (axi_w_mask         )  //w_mask_i
     ); 
+
+    wire        icache_miss;
+    wire [ 1:0] icahce_hit;
+    wire        icache_lru;
 
     ysyx_2022040010_icache_tag icache_tagu (
         .clk                (clk                ),
@@ -242,6 +294,11 @@ endmodule
         .refresh            (icache_refresh     ),
         .cacheline_new      (icache_newdata     )
     );
+
+    wire stallreq_for_dcache;// TODO:perfect
+    wire dcache_miss;
+    wire dcache_dirty;
+    wire dcache_write_back;
 
     ysyx_2022040010_dcache_tag dcache_tagu (
         .clk                (clk                ),
@@ -279,6 +336,9 @@ endmodule
         .cacheline_old      (dcache_olddata     )
     );
 
+    wire stallreq_for_uncache;
+    wire uncache_miss;
+    wire uncache_hit;
 
     ysyx_2022040010_uncache_tag uncache_tagu (
         .clk                (clk                ),
@@ -298,14 +358,16 @@ endmodule
         .hit                (uncache_hit        )
     );
 
+    wire [63:0] device_rdata;
+
     ysyx_2022040010_uncache_data uncache_datau (
         .clk                (clk                ),
         .rst                (rst                ),
         .hit                (uncache_hit        ),
         .uncache            (uncache_o          ),
         .refresh            (uncache_refresh    ),
-        .axi_rdata          (uncache_rdata      ),
-        .device_rdata       (device_rdata       )   
+        .axi_rdata          (uncache_rdata      ), // input
+        .device_rdata       (device_rdata       )  // output   
     );
 
     ysyx_2022040010_axi4 axi4u (
