@@ -249,8 +249,8 @@ module ysyx_2022040010_fsl (
         .uncache_we_i       (uncache_we         ), //uncache_miss&axi_e_axi_we
         .uncache_mask_i     (uncache_mask       ), //axi_wsel
         .uncache_addr_i     (uncache_addr       ), //axi_addr
-        .uncache_wirtedata_i(uncache_wdata      ), //axi_wdata
-        .uncache_readdata_o (uncache_rdata      ),   //send to uncache
+        .uncache_wdata_i    (uncache_wdata      ), //axi_wdata
+        .uncache_rdata_o    (uncache_rdata      ),   //send to uncache
         .uncache_refresh_o  (uncache_refresh    ),   //send to uncache
         //axi read interface
         .ar_e_o             (axi_ar_e           ), //r_e_i
