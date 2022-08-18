@@ -3,16 +3,17 @@
 `timescale 1ns/1ns
 
 module ysyx_2022040010_uncache_data (
-    input  wire         clk,
-    input  wire         rst,
+    input  wire             clk,
+    input  wire             rst,
+    input  wire [`StallBus] stall, 
 
-    input  wire         hit,
-    input  wire         uncache,
+    input  wire             hit,
+    input  wire             uncache,
 
-    input  wire         refresh,
-    input  wire [63:0]  axi_rdata, // device reg
+    input  wire             refresh,
+    input  wire [63:0]      axi_rdata, // device reg
     
-    output wire [63:0]  device_rdata // send to device / mem
+    output wire [63:0]      device_rdata // send to device / mem
 );
 
     reg [63:0] sram_rdata_r;
@@ -24,6 +25,9 @@ module ysyx_2022040010_uncache_data (
             hit_r <= 1'b0;
             uncache_r <= 1'b1;
             sram_rdata_r <= 64'b0;
+        end
+        else if (stall[3]) begin
+            // keep
         end
         else begin
             hit_r <= hit;

@@ -5,6 +5,7 @@
 module icache_data (
     input wire clk, 
     input wire rst,
+    input wire [`StallBus] stall,
 
     input wire [`HIT_WIDTH-1:0] hit,    //way sel
     input wire lru,  //least rencently used
@@ -50,6 +51,9 @@ module icache_data (
             lru_r       <= 1'b0;
             cache_r     <= 1'b0;
             bank_sel_r  <= 64'b0;
+        end
+        else if (stall[3]) begin
+            // keep
         end
         else begin
             hit_r       <= hit;

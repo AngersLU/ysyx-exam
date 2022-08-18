@@ -151,6 +151,7 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_mem memu(
         .clk                (clk                ),
         .rst                (rst                ),
+        .stall              (stall              ),
         .dsram_rdata        (dsram_rdata_v      ),
         .ex_to_mem_bus      (ex_to_mem_bus      ),
         .mem_to_wb_bus      (mem_to_wb_bus      ),
@@ -160,6 +161,7 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_wb wbu  (
         .clk                (clk                ),
         .rst                (rst                ),
+        .stall              (stall              ),
         .mem_to_wb_bus      (mem_to_wb_bus      ),
         .wb_to_rf_bus       (wb_to_rf_bus       ),
         .debug_wb_pc        (debug_wb_pc        ),
@@ -172,6 +174,7 @@ module ysyx_2022040010_fsl (
         .stallreq_for_ex    (stallreq_for_ex    ),
         .stallreq_for_bru   (stallreq_for_bru   ),
         .stallreq_for_load  (stallreq_for_load  ),
+        .stallreq_for_cache (stallreq_for_cache ),
         .stall              (stall              ) 
     );
 
@@ -263,7 +266,9 @@ module ysyx_2022040010_fsl (
         .aw_e_o             (axi_aw_e           ), //w_e_i
         .aw_addr_o          (axi_aw_addr        ), //w_addr_i
         .w_data_o           (axi_w_data         ), //w_data_i
-        .w_mask_o           (axi_w_mask         )  //w_mask_i
+        .w_mask_o           (axi_w_mask         ),  //w_mask_i
+        //stall
+        .stallreq_for_cache (stallreq_for_cache )    //send to stall
     ); 
 
     wire        icache_miss;
@@ -273,6 +278,7 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_icache_tag icache_tagu (
         .clk                (clk                ),
         .rst                (rst                ),
+        .stall              (stall              ),
         .cache              (cache_o            ),
         .sram_e             (isram_e            ),
         .sram_addr          (isram_addr         ),
@@ -285,6 +291,7 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_icache_data icache_datau  (
         .clk                (clk                ),
         .rst                (rst                ),
+        .stall              (stall              ),
         .hit                (icahce_hit         ),
         .lru                (icache_lru         ),
         .cache              (cache_o            ),
@@ -303,8 +310,8 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_dcache_tag dcache_tagu (
         .clk                (clk                ),
         .rst                (rst                ),
+        .stall              (stall              ),
         .flush              (), //fence.i   //TODO: add inst
-        .stallreq           (stallreq_for_dcache),
         .cache              (cache_o            ),
         .sram_e             (dsram_e            ),
         .sram_we            (dsram_we           ),
@@ -320,6 +327,7 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_dcache_data dcache_datau (
         .clk                (clk                ),
         .rst                (rst                ),
+        .stall              (stall              ),
         .write_back         (dcache_write_back  ),
         .hit                (dcache_hit         ),
         .lru                (dcache_lru         ),
@@ -343,6 +351,7 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_uncache_tag uncache_tagu (
         .clk                (clk                ),
         .rst                (rst                ),
+        .stall              (stall              ),
         .stallreq           (stallreq_for_uncache),
         .uncache            (uncache_o          ),
         .dsram_e            (dsram_e            ),
@@ -363,6 +372,7 @@ module ysyx_2022040010_fsl (
     ysyx_2022040010_uncache_data uncache_datau (
         .clk                (clk                ),
         .rst                (rst                ),
+        .stall              (stall              ),
         .hit                (uncache_hit        ),
         .uncache            (uncache_o          ),
         .refresh            (uncache_refresh    ),

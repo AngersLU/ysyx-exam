@@ -12,7 +12,7 @@ module ysyx_2022040010_mem (
     input wire clk,
     input wire rst,
 
-    // input wire [`StallBus] stall,
+    input wire [`StallBus] stall,
 
 //this input data depend on C++ code judgement
     input wire [63: 0] dsram_rdata,
@@ -32,6 +32,9 @@ module ysyx_2022040010_mem (
     always @(posedge clk) begin
         if (rst) begin
             ex_to_mem_bus_r     <= `EX_TO_MEM_WD'b0;
+        end
+        else if (stall[3]) begin
+            //keep
         end
         else begin
             ex_to_mem_bus_r     <= ex_to_mem_bus;

@@ -43,7 +43,9 @@ module ysyx_2022040010_arbit (
     output wire         aw_e_o,
     output wire [31:0]  aw_addr_o,
     output wire [63:0]  w_data_o,
-    output wire [ 7:0]  w_mask_o
+    output wire [ 7:0]  w_mask_o,
+    
+    output wire         stallreq_for_cache
 );
 
     // r & refresh

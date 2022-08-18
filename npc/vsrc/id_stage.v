@@ -2,25 +2,25 @@
 `include "defines.v"
 `timescale 1ns/1ns
 module ysyx_2022040010_id (
-    input wire clk,
-    input wire rst,
+    input wire                  clk,
+    input wire                  rst,
     
-    input wire [`StallBus] stall,
+    input wire [`StallBus]      stall,
 
-    output wire stallreq_for_load,
+    output wire                 stallreq_for_load,
     
-    input wire [ 6: 0] ex_to_id_for_stallload,
+    input wire [ 6: 0]          ex_to_id_for_stallload,
 
-    input wire [`IF_TO_ID_BUS] if_to_id_bus,
+    input wire [`IF_TO_ID_BUS]  if_to_id_bus,
 
-    input wire [31:0] isram_rdata,
+    input wire [31:0]           isram_rdata,
 
 
     input wire [`BP_TO_RF_BUS]  ex_to_rf_bus,
-    input wire [`BP_TO_RF_BUS] mem_to_rf_bus,
+    input wire [`BP_TO_RF_BUS]  mem_to_rf_bus,
     input wire [`BP_TO_RF_BUS]  wb_to_rf_bus,
 
-    output wire [`ID_TO_EX_BUS]  id_to_ex_bus
+    output wire [`ID_TO_EX_BUS] id_to_ex_bus
 );
 
     reg [`IF_TO_ID_WD-1:0] if_to_id_bus_r;
@@ -32,8 +32,6 @@ module ysyx_2022040010_id (
     wire [63:0] ex_rf_wdata, mem_rf_wdata, wb_rf_wdata;
 
     reg [31:0] buf_inst;
-    wire stall_temp;
-    assign stall_temp = stall[1] | stall[0];   //stall for exe or load not flush
 
     wire [63: 0] next_pc;
     reg flag;
@@ -43,6 +41,9 @@ module ysyx_2022040010_id (
             if_to_id_bus_r <= `IF_TO_ID_WD'b0;
             buf_inst <= 32'b0;
             flag <= 1'b0;
+        end
+        else if (stall[3]) begin
+            // keep
         end
         else if (stall[2] == 1'b1) begin //bru flush
             if_to_id_bus_r <= `IF_TO_ID_WD'b0;
@@ -119,6 +120,7 @@ module ysyx_2022040010_id (
     ysyx_2022040010_regfile regfile_id(
         .clk    (clk        ),
         .rst    (rst        ),
+        .stall  (stall      ),
 
         .re1    ( 1'b1      ),
         .raddr1 (rs1        ),
@@ -142,7 +144,7 @@ module ysyx_2022040010_id (
                         (mem_rf_we & (mem_rf_waddr == rs2)) ? mem_rf_wdata   :
                         (wb_rf_we  & (wb_rf_waddr  == rs2)) ? wb_rf_wdata    :
                                                               rs2_data;
-    assign rf_waddr =   rd;
+    assign rf_waddr  =   rd;
 
 
 //decoder

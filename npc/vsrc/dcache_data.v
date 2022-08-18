@@ -5,6 +5,8 @@ module dcache_data (
     input wire clk, 
     input wire rst,
 
+    input wire [`StallBus] stall,
+
     input wire wirte_back,
     input wire [`HIT_WIDTH-1:0] hit,
     input wire lru,  //least rencently used
@@ -28,11 +30,11 @@ module dcache_data (
     wire [63:0] rdata_way0 [63:0]; //8B*64=2^9B*2=2^10B=1KB   cache line 8bytes 
     wire [63:0] rdata_way1 [63:0]; 
     wire [`TAR_WIDTH-1:0]   tag; // 64-6-3=55
-    wire [5:0] index;            // 6  cache index 64 lines
-    wire [2:0] offset;           // 3  cache lines 8bytes
-    reg  [`HIT_WIDTH-1:0] hit_r; //
-    reg lru_r;
-    reg cache_r; 
+    wire [5:0]              index;            // 6  cache index 64 lines
+    wire [2:0]              offset;           // 3  cache lines 8bytes
+    reg  [`HIT_WIDTH-1:0]   hit_r; //
+    reg                     lru_r;
+    reg                     cache_r; 
     
 
     assign {
@@ -53,13 +55,16 @@ module dcache_data (
         if (rst) begin
             hit_r       <= 2'b0;
             lru_r       <= 1'b0;
-            cache_r    <= 1'b1;
+            cache_r     <= 1'b1;
             bank_sel_r  <= 64'b0;
+        end
+        else if (stall[3]) begin
+            // keep
         end
         else begin
             hit_r       <= hit;
             lru_r       <= lru;
-            cache_r    <= cache;
+            cache_r     <= cache;
             bank_sel_r  <= bank_sel;
         end
     end

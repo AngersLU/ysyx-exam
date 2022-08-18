@@ -32,6 +32,9 @@ module ysyx_2022040010_if (
             pc_reg <= `PC_START;
             ce_reg <= 1'b0;
         end
+        else if (stall[3]) begin
+            // keep
+        end
         else if(stall[0] | stall[1]) begin //exestall or loadstall
         end
         else begin

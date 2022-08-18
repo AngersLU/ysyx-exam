@@ -3,20 +3,19 @@
 `timescale 1ns/1ns
 
 module ysyx_2022040010_uncache_tag (
-    input  wire         clk,
-    input  wire         rst,
+    input  wire             clk,
+    input  wire             rst,
+    input  wire [`StallBus] stall,
 
-    output reg          stallreq,
+    input  wire             uncache,   // uncache
 
-    input  wire         uncache,   // uncache
+    input  wire             dsram_e,    
+    input  wire             dsram_we,
+    input  wire [63:0]      dsram_addr,
+    input  wire [63:0]      dsram_wdata,
+    input  wire [ 7:0]      dsram_wsel,
 
-    input  wire         dsram_e,    
-    input  wire         dsram_we,
-    input  wire [63:0]  dsram_addr,
-    input  wire [63:0]  dsram_wdata,
-    input  wire [ 7:0]  dsram_wsel,
-
-    input  wire         refresh,  // from axi
+    input  wire             refresh,  // from axi
 
     // output reg          axi_e, //delete
     // output reg          axi_we,
@@ -24,8 +23,8 @@ module ysyx_2022040010_uncache_tag (
     // output reg [63:0]   axi_wdata,   
     // output reg [ 7:0]   axi_wsel,
 
-    output reg          miss,//add
-    output reg          hit
+    output reg              miss,//add
+    output reg              hit
 );
 
     reg [1:0] stage;
@@ -37,7 +36,6 @@ module ysyx_2022040010_uncache_tag (
             axi_addr <= 64'b0; 
 
             hit <= 1'b0;
-            stallreq <= 1'b0;
             stage <= `T1;
         end
         else begin
@@ -47,7 +45,6 @@ module ysyx_2022040010_uncache_tag (
                         axi_e <= 1'b1;
                         axi_wsel <= sram_sel
 
-                        stallreq <= 1'b1;
                         stage <= `T2;
                     end
                     hit <= 1'b0;
@@ -56,17 +53,14 @@ module ysyx_2022040010_uncache_tag (
                     if (refresh) begin
                         stage <= `T3;
                         hit <= 1'b1;
-                        stallreq <= 1'b0;
                     end
                 end
                 `T3: begin
                     stage <= `T1;
                     hit   <= 1'b1;
-                    stallreq <= 1'b0;
                 end
                 default: begin
                     stage <= `T1;
-                    stallreq <= 1'b0;
                 end
             endcase
         end
@@ -79,6 +73,9 @@ module ysyx_2022040010_uncache_tag (
             stallreq <= 1'b0;
             stage <= `T1;
         end
+        else if (stall[3]) begin
+            // keep
+        end
         else begin
             if (uncache) begin  // miss
                 hit         <= 1'b0;
@@ -87,12 +84,10 @@ module ysyx_2022040010_uncache_tag (
                 axi_addr    <= dsram_addr;
                 axi_wdata   <= dsram_wdata;
                 axi_wsel    <= dsram_wsel;
-                stallreq    <= 1'b1; 
             end
             else if (refresh) begin
                 hit         <= 1'b1;
                 axi_e       <= 1'b0;
-                stallreq    <= 1'b0;
             end
         end
     end

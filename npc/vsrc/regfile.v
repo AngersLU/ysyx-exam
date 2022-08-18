@@ -5,23 +5,23 @@
 `timescale 1ns/1ns
 //write back
 module ysyx_2022040010_regfile (
-    input wire clk,
-    input wire rst,
-
+    input wire                  clk,
+    input wire                  rst,
+    input wire [`StallBus]      stall,
     //write port
-    input wire we,  //wire enable
-    input wire[`RegAddrBus] waddr,
-    input wire[`RegBus]     wdata,
+    input wire                  we,  //wire enable
+    input wire [`RegAddrBus]    waddr,
+    input wire [`RegBus]        wdata,
 
     //read port 1
-    input wire re1,
-    input wire[`RegAddrBus] raddr1,
-    output reg[`RegBus]     rdata1,  
+    input wire                  re1,
+    input wire [`RegAddrBus]    raddr1,
+    output reg [`RegBus]        rdata1,  
 
     //read port 2
-    input wire re2,
-    input wire[`RegAddrBus] raddr2, //4:0
-    output reg[`RegBus]     rdata2      //63:0
+    input wire                  re2,
+    input wire [`RegAddrBus]    raddr2, //4:0
+    output reg [`RegBus]        rdata2      //63:0
 );
 
     //init number:32 bits:64 regs
@@ -31,11 +31,13 @@ module ysyx_2022040010_regfile (
     initial set_gpr_ptr(regs);
 
 
-    
     //write handle
     always @(posedge clk) begin
         if (rst == `RstDisable) begin
-            if ((we == `WriteEnable) && (waddr != `RegNumLog2'h0)) begin
+            if (stall[3]) begin
+                // keep
+            end
+            else if ((we == `WriteEnable) && (waddr != `RegNumLog2'h0)) begin
                 regs[waddr] <= wdata;
                 // $display("npc-regfile-rd = %x", waddr);
                 // $display("npc-regfile-wdata = %x", wdata);

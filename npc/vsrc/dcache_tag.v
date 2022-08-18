@@ -1,25 +1,25 @@
 `include "defines.h"
 `timescale 1ns/1ns
 module dcache_tag (
-    input  wire clk,
-    input  wire rst,
-    input  wire flush,
-    
-    output wire stallreq,  // access memory 
+    input  wire                     clk,
+    input  wire                     rst,
+    input  wire [`StallBus]         stall,
 
-    input  wire cache,
+    input  wire                     flush,
 
-    input  wire sram_e,
-    input  wire sram_we, // 0 load 1 store
-    input  wire sram_addr,
+    input  wire                     cache,
 
-    input  wire refresh,
-    output wire miss,
-    output wire dirty,
-    output wire write_back,
+    input  wire                     sram_e,
+    input  wire                     sram_we, // 0 load 1 store
+    input  wire                     sram_addr,
 
-    output wire [`HIT_WIDTH-1:0] hit,
-    output wire lru
+    input  wire                     refresh,
+    output wire                     miss,
+    output wire                     dirty,
+    output wire                     write_back,
+
+    output wire [`HIT_WIDTH-1:0]    hit,
+    output wire                     lru
 );
 
     reg [`DTAG_WIDTH-1:0] tag_way0 [`INDEX_WIDTH-1:0];
@@ -151,7 +151,6 @@ module dcache_tag (
         end
     end
 
-    assign stallreq = miss;
     assign write_back_way0 = cache_v & sram_e & miss & tag_way0[index][`DTAG_WIDTH-1]; // dirty
     assign write_back_way1 = cache_v & sram_e & miss & tag_way1[index][`DTAG_WIDTH-1];
     assign write_back = write_back_way0 | write_back_way1;

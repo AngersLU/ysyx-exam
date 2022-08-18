@@ -3,6 +3,7 @@
 module icache_tag (
     input wire clk,
     input wire rst,
+    input wire [`StallBus] stall,
     // input wire flush,
     
     // output wire stallreq,

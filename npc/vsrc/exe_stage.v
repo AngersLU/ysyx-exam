@@ -3,31 +3,31 @@
 `timescale 1ns/1ns
 
 module ysyx_2022040010_ex (
-    input wire clk,
-    input wire rst,
+    input  wire                 clk,
+    input  wire                 rst,
 
-    input wire [`StallBus] stall,
-    output wire stallreq_for_ex,  
-    output wire stallreq_for_bru,  
+    input  wire [`StallBus]     stall,
+    output wire                 stallreq_for_ex,  
+    output wire                 stallreq_for_bru,  
 
-    input wire [`ID_TO_EX_BUS] id_to_ex_bus,
+    input  wire [`ID_TO_EX_BUS] id_to_ex_bus,
 
     output wire [`EX_TO_MEM_BUS] ex_to_mem_bus,
 
     output wire [`BP_TO_RF_BUS] ex_to_rf_bus,
 
-    output wire [ 6: 0] ex_to_id_for_stallload,  //dram_we + dram_e + rd
+    output wire [ 6: 0]         ex_to_id_for_stallload,  //dram_we + dram_e + rd
 
     output wire [`BR_TO_IF_BUS] br_bus,
 
     // line 272
-    output wire dsram_e,
-    output wire dsram_we,
-    output wire [63: 0] dsram_addr,
-    output wire [63: 0] dsram_wdata,
-    output wire [ 7: 0] dsram_sel,
+    output wire                 dsram_e,
+    output wire                 dsram_we,
+    output wire [63: 0]         dsram_addr,
+    output wire [63: 0]         dsram_wdata,
+    output wire [ 7: 0]         dsram_sel,
     
-    output wire [63: 0] debug_ex_pc
+    output wire [63: 0]         debug_ex_pc
 
 );
 
@@ -40,10 +40,13 @@ module ysyx_2022040010_ex (
             id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
             flag <= 1'b0;
         end
-        else if (stall[1] == 1'b1 && flag == 1'b0) begin
+        else if (stall[3]) begin
+            // keep
+        end
+        else if (stall[1] && ~flag) begin
             flag <= 1'b1;
         end
-        else if (stall[2] == 1'b1 | stall[0]) begin
+        else if (stall[2] | stall[0]) begin // stall[0]==1 stallreq_for_load (bubble) because stall id and if for waiting data from dsram(mem)
             id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
             flag <= 1'b0;
         end
