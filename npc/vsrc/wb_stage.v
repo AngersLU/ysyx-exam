@@ -12,7 +12,11 @@ module ysyx_2022040010_wb (
     output wire [`BP_TO_RF_BUS]     wb_to_rf_bus, 
     output wire [63: 0]             debug_wb_pc,
     output wire [63: 0]             debug_wb_npc,
-    output wire                     bubble
+    output wire                     bubble,
+    output wire                     debug_we,
+    output wire [ 4: 0]             debug_waddr,
+    output wire [63: 0]             debug_wdata,
+    output wire [63: 0]             debug_inst    
 );
 
     reg [`MEM_TO_WB_BUS]   mem_to_wb_bus_r;
@@ -39,7 +43,9 @@ module ysyx_2022040010_wb (
     //pc-debug_tool
     wire [63: 0] wb_pc;
     wire [63: 0] next_pc;
-
+    wire [63: 0] inst;
+    wire [63: 0] regs[0:31]; 
+    assign debug_inst = inst;
     assign { 
         sp_bus, //  sp_bus[0] ebreak() sp_bus[1] ecall()
         op_sp,  //  sp_e
@@ -47,7 +53,8 @@ module ysyx_2022040010_wb (
         wb_pc,   
         rf_we,   
         rf_waddr,   
-        rf_wdata
+        rf_wdata,
+        inst
     }   = mem_to_wb_bus_r;
 
     // difftest need pc  

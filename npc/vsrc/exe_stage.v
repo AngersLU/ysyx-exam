@@ -487,7 +487,8 @@ module ysyx_2022040010_ex (
         sel_rf_res, //    66  71
         rf_we,      //    65  70
         rf_waddr,   // 68:64  69
-        ex_result   // 63: 0  64
+        ex_result,  // 63: 0  64
+        inst_i
     };
 
     wire rf_we_o;

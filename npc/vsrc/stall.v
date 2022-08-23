@@ -7,8 +7,8 @@ module ysyx_2022040010_stall(
     input wire stallreq_for_load,
     input wire stallreq_for_cache,  //form aribit
 
-    // output reg flush,
-    // output reg [31:0] new_pc,
+    input wire rw_over,
+
     output reg [`StallBus] stall
 );  
     always @ (*) begin
@@ -27,7 +27,10 @@ module ysyx_2022040010_stall(
         else if (stallreq_for_cache) begin
             stall = `Stall_WD`b101000;
         end
-        else begin
+        else if (refresh) begin
+            stall = `Stall_WD'b0;
+        end
+        else if (rw_over) begin
             stall = `Stall_WD'b0;
         end
     end

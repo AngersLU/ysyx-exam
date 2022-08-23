@@ -74,7 +74,7 @@ module ysyx_2022040010_uncache_tag (
             stage <= `T1;
         end
         else if (stall[3]) begin
-            // keep
+            // keepE
         end
         else begin
             if (uncache) begin  // miss

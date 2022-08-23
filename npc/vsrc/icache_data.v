@@ -14,7 +14,8 @@ module icache_data (
     //isram_interface
     input wire sram_e,
     input wire [63:0] sram_addr,
-    output wire [63:0] sram_rdata,
+    output reg [63:0] sram_rdata,
+    output wire       icache_r_over,
 
     //axi
     input wire refresh,
@@ -66,8 +67,8 @@ module icache_data (
 
     genvar gv_w0;
     generate
-        for(gv_w0 = 0, gv_w0 < 64; gv_w0 = gv_w0 + 1)
-            begin: iloopway0
+        for(gv_w0 = 0; gv_w0 < 64; gv_w0 = gv_w0 + 1)
+            begin: icacheloopway0
                 data_cache_bank bankx_way0(
                     .clk    (clk),
                     .en     (cache & refresh  | sram_e & bank_sel[gv_w0] & hit[0]),
@@ -81,8 +82,8 @@ module icache_data (
 
     genvar gv_w1;
     generate
-        for(gv_w1 = 0, gv_w1 < 64; gv_w1 = gv_w1 + 1)
-            begin: iloopway1
+        for(gv_w1 = 0; gv_w1 < 64; gv_w1 = gv_w1 + 1)
+            begin: icacheloopway1
                 data_cache_bank bankx_way1( 
                     .clk    (clk),
                     .en     (cache & refresh | sram_e & bank_sel[gv_w0] & hit[1]),
@@ -165,7 +166,7 @@ module icache_data (
 
 
 
-    assign sram_rdata_way1 =    ~cache_r       ? 64'b0 :
+    assign sram_rdata_way1 =    ~cache_r        ? 64'b0 :
                                 bank_sel_r[ 0]  ? rdata_way1[ 0] :
                                 bank_sel_r[ 1]  ? rdata_way1[ 1] :
                                 bank_sel_r[ 2]  ? rdata_way1[ 2] :
@@ -233,6 +234,8 @@ module icache_data (
     
     assign sram_rdata = hit_r[0] ? sram_rdata_way0 : 
                         hit_r[1] ? sram_rdata_way1 : 64'b0;
+    assign icache_r_over = hit[0] | hit [1];
+    //TODO: icache_dirty & dcache_dirty sram_rdata need buffer wait dsram_rdata
 
 
 endmodule

@@ -5,8 +5,8 @@ module dcache_tag (
     input  wire                     rst,
     input  wire [`StallBus]         stall,
 
-    input  wire                     flush,
-
+    // input  wire                     flush,
+    input  wire                     stallreq,
     input  wire                     cache,
 
     input  wire                     sram_e,
@@ -91,28 +91,40 @@ module dcache_tag (
             tag_way0[27] <= 56'b0;
             tag_way0[28] <= 56'b0;
             tag_way0[29] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-            tag_way0[ 0] <= 56'b0;
-
-
-
-
+            tag_way0[30] <= 56'b0;
+            tag_way0[31] <= 56'b0;
+            tag_way0[32] <= 56'b0;
+            tag_way0[33] <= 56'b0;
+            tag_way0[34] <= 56'b0;
+            tag_way0[35] <= 56'b0;
+            tag_way0[36] <= 56'b0;
+            tag_way0[37] <= 56'b0;
+            tag_way0[38] <= 56'b0;
+            tag_way0[39] <= 56'b0;
+            tag_way0[40] <= 56'b0;
+            tag_way0[41] <= 56'b0;
+            tag_way0[42] <= 56'b0;
+            tag_way0[43] <= 56'b0;
+            tag_way0[44] <= 56'b0;
+            tag_way0[45] <= 56'b0;
+            tag_way0[46] <= 56'b0;
+            tag_way0[47] <= 56'b0;
+            tag_way0[48] <= 56'b0;
+            tag_way0[49] <= 56'b0;
+            tag_way0[50] <= 56'b0;
+            tag_way0[51] <= 56'b0;
+            tag_way0[52] <= 56'b0;
+            tag_way0[53] <= 56'b0;
+            tag_way0[54] <= 56'b0;
+            tag_way0[55] <= 56'b0;
+            tag_way0[56] <= 56'b0;
+            tag_way0[57] <= 56'b0;
+            tag_way0[58] <= 56'b0;
+            tag_way0[59] <= 56'b0;
+            tag_way0[60] <= 56'b0;
+            tag_way0[61] <= 56'b0;
+            tag_way0[62] <= 56'b0;
+            tag_way0[63] <= 56'b0;
         end
         else if (refresh & ~lru_r[index]) begin  // lru cache 0
             tag_way0[index] <= {1'b0, cache_v, tag};
@@ -124,9 +136,69 @@ module dcache_tag (
     always @(posedge clk) begin
         if(rst) begin
             tag_way1[ 0] <= 56'b0;
-
-
-
+            tag_way1[ 1] <= 56'b0;
+            tag_way1[ 2] <= 56'b0;
+            tag_way1[ 3] <= 56'b0;
+            tag_way1[ 4] <= 56'b0;
+            tag_way1[ 5] <= 56'b0;
+            tag_way1[ 6] <= 56'b0;
+            tag_way1[ 7] <= 56'b0;
+            tag_way1[ 8] <= 56'b0;
+            tag_way1[ 9] <= 56'b0;
+            tag_way1[10] <= 56'b0;
+            tag_way1[11] <= 56'b0;
+            tag_way1[12] <= 56'b0;
+            tag_way1[13] <= 56'b0;
+            tag_way1[14] <= 56'b0;
+            tag_way1[15] <= 56'b0;
+            tag_way1[16] <= 56'b0;
+            tag_way1[17] <= 56'b0;
+            tag_way1[18] <= 56'b0;
+            tag_way1[19] <= 56'b0;
+            tag_way1[20] <= 56'b0;
+            tag_way1[21] <= 56'b0;
+            tag_way1[22] <= 56'b0;
+            tag_way1[23] <= 56'b0;
+            tag_way1[24] <= 56'b0;
+            tag_way1[25] <= 56'b0;
+            tag_way1[26] <= 56'b0;
+            tag_way1[27] <= 56'b0;
+            tag_way1[28] <= 56'b0;
+            tag_way1[29] <= 56'b0;
+            tag_way1[30] <= 56'b0;
+            tag_way1[31] <= 56'b0;
+            tag_way1[32] <= 56'b0;
+            tag_way1[33] <= 56'b0;
+            tag_way1[34] <= 56'b0;
+            tag_way1[35] <= 56'b0;
+            tag_way1[36] <= 56'b0;
+            tag_way1[37] <= 56'b0;
+            tag_way1[38] <= 56'b0;
+            tag_way1[39] <= 56'b0;
+            tag_way1[40] <= 56'b0;
+            tag_way1[41] <= 56'b0;
+            tag_way1[42] <= 56'b0;
+            tag_way1[43] <= 56'b0;
+            tag_way1[44] <= 56'b0;
+            tag_way1[45] <= 56'b0;
+            tag_way1[46] <= 56'b0;
+            tag_way1[47] <= 56'b0;
+            tag_way1[48] <= 56'b0;
+            tag_way1[49] <= 56'b0;
+            tag_way1[50] <= 56'b0;
+            tag_way1[51] <= 56'b0;
+            tag_way1[52] <= 56'b0;
+            tag_way1[53] <= 56'b0;
+            tag_way1[54] <= 56'b0;
+            tag_way1[55] <= 56'b0;
+            tag_way1[56] <= 56'b0;
+            tag_way1[57] <= 56'b0;
+            tag_way1[58] <= 56'b0;
+            tag_way1[59] <= 56'b0;
+            tag_way1[60] <= 56'b0;
+            tag_way1[61] <= 56'b0;
+            tag_way1[62] <= 56'b0;
+            tag_way1[63] <= 56'b0;
         end
         else if (refresh & lru_r[index]) begin
             tag_way1[index] <= {1'b0, cache_v, tag};   // replacement strategy for write back
@@ -135,8 +207,11 @@ module dcache_tag (
 
 
     wire store_dirty;
-    assign hit_way0 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way0[index][55:0]);
-    assign hit_way1 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way1[index][55:0]);
+    // assign hit_way0 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way0[index][55:0]);
+    // assign hit_way1 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way1[index][55:0]);
+    assign hit_way0 = cache_v & sram_e & ({1'b1, tag} == tag_way0[index][55:0]);
+    assign hit_way1 = cache_v & sram_e & ({1'b1, tag} == tag_way1[index][55:0]);
+
     assign miss = cache_v & sram_e & ~(hit_way0|hit_way1) & ~flush;
     assign store_dirty = miss & sram_we;  // store
 
@@ -155,7 +230,7 @@ module dcache_tag (
     assign write_back_way1 = cache_v & sram_e & miss & tag_way1[index][`DTAG_WIDTH-1];
     assign write_back = write_back_way0 | write_back_way1;
 
-
+    assign stallreq = miss | (cache & sram_e);
 
 
 endmodule

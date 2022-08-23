@@ -21,7 +21,9 @@ module ysyx_2022040010_regfile (
     //read port 2
     input wire                  re2,
     input wire [`RegAddrBus]    raddr2, //4:0
-    output reg [`RegBus]        rdata2      //63:0
+    output reg [`RegBus]        rdata2,      //63:0
+
+    output wire [63:0]          regs_o [0:31]
 );
 
     //init number:32 bits:64 regs
@@ -88,5 +90,12 @@ module ysyx_2022040010_regfile (
             rdata2 = `ZeroWord;
         end
     end
+
+	genvar i;
+	generate
+		for (i = 0; i < 32; i = i + 1) begin
+			assign regs_o[i] = (w_e & waddr == i & i != 0) ? w_data : regs[i];
+		end
+	endgenerate
 
 endmodule

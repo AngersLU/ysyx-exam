@@ -6,7 +6,7 @@ module icache_tag (
     input wire [`StallBus] stall,
     // input wire flush,
     
-    // output wire stallreq,
+    output wire stallreq,
     input wire cache,
 
     input wire sram_e,
@@ -50,7 +50,7 @@ module icache_tag (
             lru_r[index] <= 1'b0;              //0 lru index way0 
         end
         else if (refresh) begin
-            lru_r[index] <= ~lru_r[index];   // ?
+            lru_r[index] <= ~lru_r[index];   
         end
     end
 
@@ -122,7 +122,7 @@ module icache_tag (
             tag_way0[63] <= `TAR_WIDTH'b0;
         end
         else if (refresh & ~lru_r[index]) begin  // lru cache 0
-            tag_way0[index] <= {cache_v, tag};   // 
+            tag_way0[index] <= {cache_v, tag};  
         end
     end
 
@@ -198,12 +198,15 @@ module icache_tag (
         end
     end
 
-    assign hit_way0 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way0[index]);
-    assign hit_way1 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way1[index]);
+    // assign hit_way0 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way0[index]);
+    // assign hit_way1 = ~flush & cache_v & sram_e & ({1'b1, tag} == tag_way1[index]);
+    assign hit_way0 = cache_v & sram_e & ({1'b1, tag} == tag_way0[index]);
+    assign hit_way1 = cache_v & sram_e & ({1'b1, tag} == tag_way1[index]);
     assign lru      = lru_r[index];
     assign hit      = {hit_way1, hit_way0};
     assign miss     = cache_v & sram_e & ~(hit_way0|hit_way1) & ~flush;
-    assign stallreq = miss;
+
+    assign stallreq = miss | (cache & sram_e); // miss need refresh , so sram_e need rw_over
 
     
 endmodule

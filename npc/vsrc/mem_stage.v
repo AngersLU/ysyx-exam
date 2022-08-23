@@ -56,6 +56,7 @@ module ysyx_2022040010_mem (
     wire [1 : 0] sp_bus;
     wire op_sp;
     wire [63: 0] next_pc;
+    wire [63: 0] inst;
 
     assign  {
         sp_bus,     //2
@@ -70,7 +71,8 @@ module ysyx_2022040010_mem (
         sel_rf_res, //    66
         rf_we,      //    65
         rf_waddr,   // 68:64
-        ex_result   // 63: 0
+        ex_result,   // 63: 0
+        inst
     }   = ex_to_mem_bus_r;
 
 // load part
@@ -124,7 +126,8 @@ module ysyx_2022040010_mem (
         mem_pc,     //133:70
         rf_we,      //    69
         rf_waddr,   // 68:64
-        rf_wdata    // 63: 0
+        rf_wdata,    // 63: 0
+        inst,
     };
 
     wire rf_we_o;

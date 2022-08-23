@@ -20,7 +20,8 @@ module ysyx_2022040010_id (
     input wire [`BP_TO_RF_BUS]  mem_to_rf_bus,
     input wire [`BP_TO_RF_BUS]  wb_to_rf_bus,
 
-    output wire [`ID_TO_EX_BUS] id_to_ex_bus
+    output wire [`ID_TO_EX_BUS] id_to_ex_bus,
+    output wire [63:0]          regs_o[0:31]
 );
 
     reg [`IF_TO_ID_WD-1:0] if_to_id_bus_r;
@@ -132,7 +133,8 @@ module ysyx_2022040010_id (
 
         .we     (wb_rf_we   ),
         .waddr  (wb_rf_waddr),
-        .wdata  (wb_rf_wdata)
+        .wdata  (wb_rf_wdata),
+        .regs_o (regs_o     )
     );
     
 

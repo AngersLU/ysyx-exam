@@ -17,9 +17,10 @@ module dcache_data (
     input wire sram_e,
     input wire sram_we,
     // input wire [ 7:0] sram_sel,
-    input wire [63:0] sram_addr,
-    input wire [63:0] sram_wdata,
+    input wire  [63:0] sram_addr,
+    input wire  [63:0] sram_wdata,
     output wire [63:0] sram_rdata,
+    output wire        dcache_rw_over,
 
     //axi
     input wire refresh,
@@ -243,8 +244,8 @@ module dcache_data (
 
     assign cacheline_old = write_back? lru_r ? sram_rdata_way1 : sram_rdata_way0 : 64'b0;
 
-
-
+    assign dcache_rw_over = hit_r[0] | hit[1]; 
+ 
 endmodule
 
 
