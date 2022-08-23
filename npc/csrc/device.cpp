@@ -25,13 +25,6 @@ uint64_t get_time() {
   return us;
 }
 
-static void serial_putc(char ch) {
-  cout << ch << endl;
-}
-
- void serial_io_output() {
-  serial_putc(*serial_base);
-}
 
 void serial_io_input(long long wdata) {
   putc((uint8_t)wdata, stderr);
