@@ -1,5 +1,8 @@
 
-`timescale 1ns/1ns
+`include "defines.v"
+
+`timescale 1ns / 1ps
+
 module ysyx_2022040010_add (
   input wire [63:0]     in_a,
   input wire [63:0]     in_b,
@@ -23,7 +26,7 @@ module ysyx_2022040010_add (
     generate
       for (gv_z = 0; gv_z < 64; gv_z = gv_z + 1 ) begin: faloop
         /* verilator lint_off UNOPT */
-        fa bitx ( .a( ina[gv_z]), .b( inb[gv_z]), .cin( c[gv_z]), .s( s[gv_z]), .c( c[gv_z+1]));
+        ysyx_2022040010_fa bitx ( .a( ina[gv_z]), .b( inb[gv_z]), .cin( c[gv_z]), .s( s[gv_z]), .c( c[gv_z+1]));
         /* verilator lint_on UNOPT */
       end
     endgenerate

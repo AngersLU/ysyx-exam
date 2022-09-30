@@ -2,7 +2,7 @@
 
 //TODO: don't needto consider the case of unsigned
 `include "defines.v"
-`timescale 1ns/1ns
+`timescale 1ns / 1ps
 module alu (
     input wire [`AluOpBus] alu_op, //TODO:  
 

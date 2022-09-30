@@ -1,11 +1,14 @@
+
+`include "defines.v"
+`timescale 1ns / 1ps
 module ysyx_2022040010_stall(
     input wire rst,
     input wire stallreq_for_ex,
     input wire stallreq_for_bru,
     input wire stallreq_for_load,
+    input wire stallreq_for_cache, 
 
-    // output reg flush,
-    // output reg [31:0] new_pc,
+    input wire rw_over,
     output reg [`StallBus] stall
 );  
     always @ (*) begin
@@ -21,8 +24,14 @@ module ysyx_2022040010_stall(
         else if (stallreq_for_load) begin
             stall = `Stall_WD'b100001;
         end
-        else begin
+        else if (stallreq_for_cache) begin
+            stall = `Stall_WD'b101000;
+        end
+        else if (rw_over) begin
             stall = `Stall_WD'b0;
+        end
+        else begin
+            stall = `Stall_WD'b0; 
         end
     end
 

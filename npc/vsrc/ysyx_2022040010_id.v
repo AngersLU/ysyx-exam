@@ -1,52 +1,65 @@
 
 `include "defines.v"
-`timescale 1ns/1ns
+`timescale 1ns / 1ps
 module ysyx_2022040010_id (
-    input wire clk,
-    input wire rst,
+    input wire                  clk,
+    input wire                  rst,
     
-    input wire [`StallBus] stall,
+    input wire [`StallBus]      stall,
 
-    output wire stallreq_for_load,
-    // output wire stallreq_for_bru,
-    input wire [ 6: 0] ex_to_id_for_stallload,
+    output wire                 stallreq_for_load,
+    
+    input wire [ 6: 0]          ex_to_id_for_stallload,
 
-    input wire [`IF_TO_ID_BUS] if_to_id_bus,
+    input wire [`IF_TO_ID_BUS]  if_to_id_bus,
 
-    input wire [31:0] isram_rdata,
+    input wire [31:0]           isram_rdata,
 
-// BypassBus replace
+ 
     input wire [`BP_TO_RF_BUS]  ex_to_rf_bus,
-    input wire [`BP_TO_RF_BUS] mem_to_rf_bus,
+    input wire [`BP_TO_RF_BUS]  mem_to_rf_bus,
     input wire [`BP_TO_RF_BUS]  wb_to_rf_bus,
-//
-    output wire [`ID_TO_EX_BUS]  id_to_ex_bus
+
+    output wire [`ID_TO_EX_BUS] id_to_ex_bus,
+    output wire [63:0]          regs_o[0:31]
 );
 
-    reg [`IF_TO_ID_WD-1:0] if_to_id_bus_r;
 
     wire ce;
+    wire [63:0]         id_pc;
+    wire [63:0]         next_pc;
 
     wire ex_rf_we, mem_rf_we, wb_rf_we;
     wire [4:0] ex_rf_waddr, mem_rf_waddr, wb_rf_waddr;
     wire [63:0] ex_rf_wdata, mem_rf_wdata, wb_rf_wdata;
 
-    reg [31:0] buf_inst;
-    wire stall_temp;
-    assign stall_temp = stall[1] | stall[0];   //stall for exe or load not flush
 
-    wire [63: 0] next_pc;
     reg flag;
+    reg [31:0] buf_inst;    
+    reg buf_ce;
+    reg [63:0] buf_id_pc;
+    reg [63:0] buf_next_pc;
+
+
+    assign {ce, id_pc, next_pc} = if_to_id_bus;
 
     always @(posedge clk) begin
         if (rst) begin
-            if_to_id_bus_r <= `IF_TO_ID_WD'b0;
             buf_inst <= 32'b0;
+            buf_ce <= 1'b0;
+            buf_id_pc <= 64'b0;
+            buf_next_pc <= 64'b0; 
             flag <= 1'b0;
         end
+        else if (stall[3]) begin
+
+            // keep TODO:
+        end
         else if (stall[2] == 1'b1) begin //bru flush
-            if_to_id_bus_r <= `IF_TO_ID_WD'b0;
             buf_inst <= 32'b0;
+            buf_ce <= 1'b0;
+            buf_id_pc <= 64'b0;
+            buf_next_pc <= 64'b0;
             flag <= 1'b0;
         end
         else if (stall[0]) begin
@@ -56,24 +69,26 @@ module ysyx_2022040010_id (
             flag <= 1'b1; 
         end
         else if (stall[5] == 1'b0) begin
-            if_to_id_bus_r <= if_to_id_bus;
             buf_inst <= isram_rdata;
+            buf_ce <= ce;
+            buf_id_pc <= id_pc;
+            buf_next_pc <= next_pc;
             flag <= 1'b0;
         end
         else begin
-            if_to_id_bus_r <= if_to_id_bus;
             buf_inst <= isram_rdata;
+            buf_ce <= ce;
+            buf_id_pc <= id_pc;
+            buf_next_pc <= next_pc;
             flag <= 1'b0; 
         end
     end
+    wire [31:0] inst_i = ce_i ? buf_inst : 32'b0;
+    wire ce_i = buf_ce;
+    wire [63:0] id_pc_i = ce_i ? buf_id_pc : 64'b0;
+    wire [63:0] next_pc_i = ce_i ? buf_next_pc : 64'b0;
 
-    assign {ce , id_pc, next_pc} = if_to_id_bus_r;
 
-    //buf_inst bounce point of brunch instruction ?
-    //TODO: need to add code to make buf_inst true instruction
-    assign inst_i = ce ? buf_inst : 32'b0;
-
-//　TODO:replace of bypass
     assign {
         ex_rf_we,
         ex_rf_waddr,
@@ -91,8 +106,6 @@ module ysyx_2022040010_id (
         wb_rf_waddr,
         wb_rf_wdata
     } = wb_to_rf_bus;
-
-//
 
 
     wire [6:0]  opcode = inst_i[6:0];
@@ -123,6 +136,7 @@ module ysyx_2022040010_id (
     ysyx_2022040010_regfile regfile_id(
         .clk    (clk        ),
         .rst    (rst        ),
+        .stall  (stall      ),
 
         .re1    ( 1'b1      ),
         .raddr1 (rs1        ),
@@ -134,12 +148,11 @@ module ysyx_2022040010_id (
 
         .we     (wb_rf_we   ),
         .waddr  (wb_rf_waddr),
-        .wdata  (wb_rf_wdata)
+        .wdata  (wb_rf_wdata),
+        .regs_o (regs_o     )
     );
     
 
-
-// TODO: rdata1 & rdata2 will be replaced by sel_rs1_forward & rs_forward_data
     assign rf_rdata1 =  (ex_rf_we  & (ex_rf_waddr  == rs1)) ? ex_rf_wdata    :
                         (mem_rf_we & (mem_rf_waddr == rs1)) ? mem_rf_wdata   :
                         (wb_rf_we  & (wb_rf_waddr  == rs1)) ? wb_rf_wdata    :
@@ -148,18 +161,18 @@ module ysyx_2022040010_id (
                         (mem_rf_we & (mem_rf_waddr == rs2)) ? mem_rf_wdata   :
                         (wb_rf_we  & (wb_rf_waddr  == rs2)) ? wb_rf_wdata    :
                                                               rs2_data;
-    assign rf_waddr =   rd;
+    assign rf_waddr  =   rd;
 
 
 //decoder
-    decoder_7_128   decoder_7_128_u0(   .in(opcode),    .out(op_d)      );
-    decoder_7_128   decoder_7_128_u1(   .in(func7),     .out(func7_d)   );
+    ysyx_2022040010_decoder_7_128   decoder_7_128_u0(   .in(opcode),    .out(op_d)      );
+    ysyx_2022040010_decoder_7_128   decoder_7_128_u1(   .in(func7),     .out(func7_d)   );
 
-    decoder_5_32    decoder_5_32_u0(    .in(rs1),       .out(rs1_d)     );
-    decoder_5_32    decoder_5_32_u1(    .in(rs2),       .out(rs2_d)     );
-    decoder_5_32    decoder_5_32_u2(    .in(rd),        .out(rd_d)      );
+    ysyx_2022040010_decoder_5_32    decoder_5_32_u0(    .in(rs1),       .out(rs1_d)     );
+    ysyx_2022040010_decoder_5_32    decoder_5_32_u1(    .in(rs2),       .out(rs2_d)     );
+    ysyx_2022040010_decoder_5_32    decoder_5_32_u2(    .in(rd),        .out(rd_d)      );
 
-    decoder_3_8     decoder_3_8_u0(     .in(func3),     .out(func3_d)   );
+    ysyx_2022040010_decoder_3_8     decoder_3_8_u0(     .in(func3),     .out(func3_d)   );
 
 //ALU
     wire inst_lui,      inst_auipc;
@@ -390,10 +403,6 @@ module ysyx_2022040010_id (
     assign sel_rf_res   =   inst_lb     |   inst_lh     |   inst_lw     |   inst_ld
                         |   inst_lbu    |   inst_lhu    |   inst_lwu;
 
-//  TODO: stall load req
-    // assign stallreq_reg_load = inst_lb  |   inst_lh     |   inst_lw     |   inst_ld
-    //                         |  inst_lbu |   inst_lhu    |   inst_lwu;
-
     //regfile store enable
     assign rf_we    =   inst_lui    |   inst_auipc  |   inst_jal    |   inst_jalr
                     |   inst_lb     |   inst_lh     |   inst_lw
@@ -411,38 +420,6 @@ module ysyx_2022040010_id (
                     |   inst_mulhu  |   inst_div    |   inst_divu   |   inst_rem
                     |   inst_remu   |   inst_mulw   |   inst_divw   |   inst_divuw 
                     |   inst_remw   |   inst_remuw;
-
-    // // store in [rd]
-    // assign sel_rf_dst[0]    =   inst_lui    |   inst_auipc  |   inst_addi
-    //                         |   inst_addiw  |   inst_add    |   inst_addw
-    //                         |   inst_sub    |   inst_subw   |   inst_slti
-    //                         |   inst_sltiu  |   inst_slli   |   inst_srli
-    //                         |   inst_srai   |   inst_slliw  |   inst_srliw
-    //                         |   inst_sraiw  |   inst_sll    |   inst_sllw
-    //                         |   inst_sllw   |   inst_slt    |   inst_sltu
-    //                         |   inst_srl    |   inst_srlw   |   inst_sra
-    //                         |   inst_sraw   |   inst_xori   |   inst_ori
-    //                         |   inst_andi   |   inst_xor    |   inst_or
-    //                         |   inst_and    |   inst_lb     |   inst_lh
-    //                         |   inst_lw     |   inst_lwu    |   inst_lbu
-    //                         |   inst_lhu    |   inst_ld     |   inst_csrrw
-    //                         |   inst_csrrs  |   inst_csrrc  |   inst_csrrwi
-    //                         |   inst_csrrsi |   inst_csrrci |   inst_mul
-    //                         |   inst_mulh   |   inst_mulhsu |   inst_mulhu
-    //                         |   inst_mulw   |   inst_div    |   inst_divu
-    //                         |   inst_divw   |   inst_divuw  |   inst_rem
-    //                         |   inst_remu   |   inst_remw   |   inst_remuw;
-                    
-    // // store in mem
-    // assign sel_rf_dst[1]    =   inst_sb     |   inst_sh     |   inst_sw
-    //                         |   inst_sd;
-    
-    // // store in pc
-    // assign sel_rf_dst[2]    =   inst_jal    |   inst_jalr   |   inst_jalr
-    //                         |   inst_beq    |   inst_bne    |   inst_blt
-    //                         |   inst_bge    |   inst_bltu   |   inst_bgeu;
-
-
 
     wire [ 7: 0] bru_op;
     assign bru_op   =   {   inst_jal,   inst_jalr,  inst_beq,   inst_bne,   inst_blt,
@@ -467,8 +444,6 @@ module ysyx_2022040010_id (
     wire [ 3:0]         rem_op;
     wire [ 3:0]         div_op;       //classify instruction into div
     wire [ 5:0]         sru_op;   
-    wire [63:0]         id_pc;
-    wire [31:0]         inst_i;
     wire [`AluOpBus]    alu_op;       //classify instruction into alu
     wire [`AluSel1Bus]  sel_alu_src1; //alu src1 classification
     wire [`AluSel2Bus]  sel_alu_src2; //alu src2 classification  
@@ -496,8 +471,8 @@ module ysyx_2022040010_id (
         rem_op,         //266
         div_op,         //262
         sru_op,         //258
-        next_pc,
-        id_pc,          //252
+        next_pc_i,
+        id_pc_i,          //252
         inst_i,         //188
         alu_op,         //156
         sel_alu_src1,   //144
@@ -523,8 +498,6 @@ module ysyx_2022040010_id (
 
 endmodule
 
-
-//EX -ALU BRU CSR MUL DIV
 
 
 

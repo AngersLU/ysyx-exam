@@ -1,7 +1,7 @@
 
 // try quotient way
 `include "defines.v"
-`timescale 1ns/1ns
+`timescale 1ns / 1ps
 // module ysyx_2022040010_div(
 //     input wire rst,
 //     input wire clk,

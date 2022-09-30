@@ -1,33 +1,34 @@
 
 `include "defines.v"
-`timescale 1ns/1ns
+`timescale 1ns / 1ps
 
 module ysyx_2022040010_ex (
-    input wire clk,
-    input wire rst,
+    input  wire                 clk,
+    input  wire                 rst,
 
-    input wire [`StallBus] stall,
-    output wire stallreq_for_ex,  
-    output wire stallreq_for_bru,  
+    input  wire [`StallBus]     stall,
+    output wire                 stallreq_for_ex,  
+    output wire                 stallreq_for_bru,  
 
-    input wire [`ID_TO_EX_BUS] id_to_ex_bus,
+    input  wire [`ID_TO_EX_BUS] id_to_ex_bus,
 
     output wire [`EX_TO_MEM_BUS] ex_to_mem_bus,
 
     output wire [`BP_TO_RF_BUS] ex_to_rf_bus,
 
-    output wire [ 6: 0] ex_to_id_for_stallload,  //dram_we + dram_e + rd
+    output wire [ 6: 0]         ex_to_id_for_stallload,  //dram_we + dram_e + rd
 
     output wire [`BR_TO_IF_BUS] br_bus,
 
     // line 272
-    output wire dsram_e,
-    output wire dsram_we,
-    output wire [63: 0] dsram_addr,
-    output wire [63: 0] dsram_wdata,
-    output wire [ 7: 0] dsram_sel,
+    output wire                 dsram_e,
+    output wire                 dsram_we,
+    output wire [63: 0]         dsram_addr,
+    output wire [63: 0]         dsram_wdata,
+    output wire [ 7: 0]         dsram_sel,
+    output wire [ 1: 0]         dsram_size,
     
-    output wire [63: 0] debug_ex_pc
+    output wire [63: 0]         debug_ex_pc
 
 );
 
@@ -40,10 +41,13 @@ module ysyx_2022040010_ex (
             id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
             flag <= 1'b0;
         end
-        else if (stall[1] == 1'b1 && flag == 1'b0) begin
+        else if (stall[3]) begin
+            // keep
+        end
+        else if (stall[1] && ~flag) begin
             flag <= 1'b1;
         end
-        else if (stall[2] == 1'b1 | stall[0]) begin
+        else if (stall[2] | stall[0]) begin // stall[0]==1 stallreq_for_load (bubble) because stall id and if for waiting data from dsram(mem)
             id_to_ex_bus_r <= `ID_TO_EX_WD'b0;
             flag <= 1'b0;
         end
@@ -161,17 +165,8 @@ module ysyx_2022040010_ex (
     assign imm_U_sign_extend  = { {32{imm_U[31]}}, imm_U[31:0]};
     assign imm_J_sign_extend  = { {43{imm_J[20]}}, imm_J[20:0]};
 
-    // assign imm_I_zero_extend  = { 52'b0, imm_I[11:0]};
-    // assign imm_S_zero_extend  = { 52'b0, imm_S[11:0]};
-    // assign imm_B_zero_extend  = { 52'b0, imm_B[11:0]};  
-
-    // assign imm_U_zero_extend  = { 44'b0, imm_U[19:0]};
-    // assign imm_J_zero_extend  = { 44'b0, imm_J[19:0]};
-
     assign shamt_zero_extend  = { 58'b0, shamt[ 5:0]};
 
-//   sel_alu_src1[2]  special handle
-    // assign imm_I_jalr_extend = { {imm_I_sign_extend}&{~64'b1}};
 
     wire [63:0] alu_src1,   alu_src2;
     wire [63:0] alu_result, ex_result;
@@ -214,7 +209,7 @@ module ysyx_2022040010_ex (
     assign load_op = mem_op[10: 4];
 
 
-    decoder_3_8 decoder_3_8_u1(
+    ysyx_2022040010_decoder_3_8 decoder_3_8_u1(
         .in     (ex_result[2:0] ),
         .out    (byte_sel       )
     );
@@ -237,6 +232,12 @@ module ysyx_2022040010_ex (
                                 lsu_8   ? byte_sel  : 8'b0;
 
     assign dsram_sel = ex_dsram_sel;
+
+    assign dsram_size = lsu_64 ? `SIZE_D
+                    :   lsu_32 ? `SIZE_W
+                    :   lsu_16 ? `SIZE_H
+                    :   lsu_8  ? `SIZE_B
+                    :   2'b00;    
 
 // mul & div
     // mulw
@@ -479,21 +480,22 @@ module ysyx_2022040010_ex (
                         div_over ? div_result :
                         64'b0;                //this instruction is a branch 
 
-// store instruction over    211:0
+// store instruction over    250:0 251
     assign ex_to_mem_bus = {
         sp_bus,      //ecall / ebreak 2
         alu_op[0],  //op_sp          1
-        load_op,    //143:137 148
-        real_npc,
-        ex_pc,      //136:73  141
-        dram_e,     //    72  77
-        dram_we,    //    71  76
-        ex_dsram_sel, //7:0   8
+        load_op,    //143:137 148    7
+        real_npc,   //               64
+        ex_pc,      //136:73  141    64
+        dram_e,     //    72  77     1
+        dram_we,    //    71  76     1
+        ex_dsram_sel, //7:0          8      
         //0 form alu_res, 1 from ld_res
-        sel_rf_res, //    66  71
-        rf_we,      //    65  70
-        rf_waddr,   // 68:64  69
-        ex_result   // 63: 0  64
+        sel_rf_res, //    66  71     1
+        rf_we,      //    65  70     1
+        rf_waddr,   // 68:64  69     5
+        ex_result,  // 63: 0  64     64
+        inst_i      //               32
     };
 
     wire rf_we_o;

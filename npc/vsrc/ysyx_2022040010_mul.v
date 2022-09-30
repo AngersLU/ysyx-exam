@@ -1,7 +1,8 @@
 
 `include "defines.v"
+
+`timescale 1ns / 1ps
 // wallace tree
-`timescale 1ns/1ns
 // TODO: signed & unsigned not distinction yet
 // module ysyx_2022040010_mul (
 //     input wire clk,

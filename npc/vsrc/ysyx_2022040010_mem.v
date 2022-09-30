@@ -6,13 +6,13 @@
     so, exu nee to output dsram(store instruction)
 */
 `include "defines.v"
-`timescale 1ns/1ns
+`timescale 1ns / 1ps
 
 module ysyx_2022040010_mem (
     input wire clk,
     input wire rst,
 
-    // input wire [`StallBus] stall,
+    input wire [`StallBus] stall,
 
 //this input data depend on C++ code judgement
     input wire [63: 0] dsram_rdata,
@@ -26,16 +26,15 @@ module ysyx_2022040010_mem (
 );
 
     reg [`EX_TO_MEM_BUS] ex_to_mem_bus_r;
-
-
-    //TODO:not understand stall & flag
     reg flag;
-    // reg [31: 0] dsram_rdata_buffer; 
 
 
     always @(posedge clk) begin
         if (rst) begin
             ex_to_mem_bus_r     <= `EX_TO_MEM_WD'b0;
+        end
+        else if (stall[3]) begin
+            //keep
         end
         else begin
             ex_to_mem_bus_r     <= ex_to_mem_bus;
@@ -53,10 +52,10 @@ module ysyx_2022040010_mem (
     wire [63: 0] ex_result;
 // 0 regfiel res from alu_res ; 1 form ld_res
     wire sel_rf_res;    
-    wire [63: 0] mem_pc;
     wire [1 : 0] sp_bus;
     wire op_sp;
     wire [63: 0] next_pc;
+    wire [31: 0] inst;
 
     assign  {
         sp_bus,     //2
@@ -71,7 +70,8 @@ module ysyx_2022040010_mem (
         sel_rf_res, //    66
         rf_we,      //    65
         rf_waddr,   // 68:64
-        ex_result   // 63: 0
+        ex_result,   // 63: 0
+        inst
     }   = ex_to_mem_bus_r;
 
 // load part
@@ -119,13 +119,14 @@ module ysyx_2022040010_mem (
     assign rf_wdata = (sel_rf_res & dram_e) ? mem_result : ex_result;
 
     assign mem_to_wb_bus = {
-        sp_bus,
-        op_sp,
-        next_pc,
-        mem_pc,     //133:70
-        rf_we,      //    69
-        rf_waddr,   // 68:64
-        rf_wdata    // 63: 0
+        sp_bus,     //          2
+        op_sp,      //          1
+        next_pc,    //          64
+        mem_pc,     //133:70    64
+        rf_we,      //    69    1
+        rf_waddr,   // 68:64    5
+        rf_wdata,    // 63: 0   64
+        inst         //         32
     };
 
     wire rf_we_o;
